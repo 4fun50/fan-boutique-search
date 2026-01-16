@@ -1136,141 +1136,152 @@
    ======================================== */
 
 /* Conteneur principal du message d'accueil */
-.fm-welcome-message {
-  padding: 24px;
-  text-align: center;
-  font-family: "Jost", sans-serif;
+.fm-search-results .fm-welcome-message {
+  padding: 24px !important;
+  text-align: center !important;
+  font-family: "Jost", sans-serif !important;
+  box-sizing: border-box !important;
 }
 
 /* En-tête du message */
-.fm-welcome-header {
-  margin-bottom: 24px;
+.fm-search-results .fm-welcome-header {
+  margin-bottom: 24px !important;
 }
 
-.fm-welcome-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 8px 0;
-  line-height: 1.4;
+.fm-search-results .fm-welcome-title {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  margin: 0 0 8px 0 !important;
+  line-height: 1.4 !important;
+  font-family: "Jost", sans-serif !important;
 }
 
-.fm-welcome-subtitle {
-  font-size: 14px;
-  color: #7f8c8d;
-  margin: 0;
-  font-weight: 400;
+.fm-search-results .fm-welcome-subtitle {
+  font-size: 14px !important;
+  color: #7f8c8d !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+  font-family: "Jost", sans-serif !important;
 }
 
 /* Section exemples */
-.fm-welcome-examples {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 20px;
-  text-align: left;
+.fm-search-results .fm-welcome-examples {
+  background: #f8f9fa !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
 }
 
-.fm-welcome-examples-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 12px 0;
+.fm-search-results .fm-welcome-examples-title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #2c3e50 !important;
+  margin: 0 0 12px 0 !important;
+  font-family: "Jost", sans-serif !important;
 }
 
-.fm-welcome-examples-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.fm-search-results .fm-welcome-examples-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.fm-welcome-examples-list li {
-  padding: 10px 14px;
-  margin-bottom: 8px;
-  background: white;
-  border-radius: 8px;
-  border-left: 3px solid #d7b984;
-  font-size: 14px;
-  color: #34495e;
-  font-style: italic;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 400;
+.fm-search-results .fm-welcome-examples-list li {
+  padding: 10px 14px !important;
+  margin-bottom: 8px !important;
+  background: white !important;
+  border-radius: 8px !important;
+  border-left: 3px solid #d7b984 !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  font-size: 14px !important;
+  color: #34495e !important;
+  font-style: italic !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-weight: 400 !important;
+  font-family: "Jost", sans-serif !important;
+  line-height: 1.5 !important;
+  box-sizing: border-box !important;
 }
 
-.fm-welcome-examples-list li:last-child {
-  margin-bottom: 0;
+.fm-search-results .fm-welcome-examples-list li:last-child {
+  margin-bottom: 0 !important;
 }
 
-.fm-welcome-examples-list li:hover {
-  background-color: #fef6e8;
-  transform: translateX(4px);
-  border-left-color: #c9a871;
+.fm-search-results .fm-welcome-examples-list li:hover {
+  background-color: #fef6e8 !important;
+  transform: translateX(4px) !important;
+  border-left-color: #c9a871 !important;
 }
 
-.fm-welcome-examples-list li:active {
-  transform: translateX(4px) scale(0.98);
+.fm-search-results .fm-welcome-examples-list li:active {
+  transform: translateX(4px) scale(0.98) !important;
 }
 
 /* Mode sombre pour le message d'accueil */
 .fm-search-results[data-theme="dark"] .fm-welcome-title {
-  color: #f3f4f6;
+  color: #f3f4f6 !important;
 }
 
 .fm-search-results[data-theme="dark"] .fm-welcome-subtitle {
-  color: #9ca3af;
+  color: #9ca3af !important;
 }
 
 .fm-search-results[data-theme="dark"] .fm-welcome-examples {
-  background: #1f2937;
+  background: #1f2937 !important;
 }
 
 .fm-search-results[data-theme="dark"] .fm-welcome-examples-title {
-  color: #f3f4f6;
+  color: #f3f4f6 !important;
 }
 
 .fm-search-results[data-theme="dark"] .fm-welcome-examples-list li {
-  background: #374151;
-  color: #d1d5db;
-  border-left-color: #d7b984;
+  background: #374151 !important;
+  color: #d1d5db !important;
+  border-left-color: #d7b984 !important;
 }
 
 .fm-search-results[data-theme="dark"] .fm-welcome-examples-list li:hover {
-  background-color: #4b5563;
-  border-left-color: #e8c896;
+  background-color: #4b5563 !important;
+  border-left-color: #e8c896 !important;
 }
 
 /* Responsive - Mobile */
 @media (max-width: 768px) {
-  .fm-welcome-message {
-    padding: 16px;
+  .fm-search-results .fm-welcome-message {
+    padding: 16px !important;
   }
 
-  .fm-welcome-header {
-    margin-bottom: 20px;
+  .fm-search-results .fm-welcome-header {
+    margin-bottom: 20px !important;
   }
 
-  .fm-welcome-title {
-    font-size: 16px;
+  .fm-search-results .fm-welcome-title {
+    font-size: 16px !important;
   }
 
-  .fm-welcome-subtitle {
-    font-size: 13px;
+  .fm-search-results .fm-welcome-subtitle {
+    font-size: 13px !important;
   }
 
-  .fm-welcome-examples {
-    padding: 16px;
-    border-radius: 10px;
+  .fm-search-results .fm-welcome-examples {
+    padding: 16px !important;
+    border-radius: 10px !important;
   }
 
-  .fm-welcome-examples-title {
-    font-size: 13px;
-    margin-bottom: 10px;
+  .fm-search-results .fm-welcome-examples-title {
+    font-size: 13px !important;
+    margin-bottom: 10px !important;
   }
 
-  .fm-welcome-examples-list li {
-    font-size: 13px;
-    padding: 8px 12px;
-    margin-bottom: 6px;
-    border-radius: 6px;
+  .fm-search-results .fm-welcome-examples-list li {
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 6px !important;
+    border-radius: 6px !important;
   }
 }
