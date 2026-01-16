@@ -1444,8 +1444,8 @@
       const welcomeHTML = `
         <div class="fm-welcome-message">
           <div class="fm-welcome-header">
-            <h3 class="fm-welcome-title">Bienvenue sur le moteur de recherche France Minéraux</h3>
-            <p class="fm-welcome-subtitle">Recherchez en langage naturel</p>
+            <h3 class="fm-welcome-title">Que recherchez-vous ?</h3>
+            <p class="fm-welcome-subtitle">Décrivez en quelques mots</p>
           </div>
           <div class="fm-welcome-examples">
             <p class="fm-welcome-examples-title">Exemples de recherche :</p>
