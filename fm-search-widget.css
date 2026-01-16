@@ -1151,7 +1151,7 @@
 .fm-search-results .fm-welcome-title {
   font-size: 18px !important;
   font-weight: 600 !important;
-  color: #2c3e50 !important;
+  color: #45293F !important;
   margin: 0 0 8px 0 !important;
   line-height: 1.4 !important;
   font-family: "Jost", sans-serif !important;
@@ -1159,7 +1159,7 @@
 
 .fm-search-results .fm-welcome-subtitle {
   font-size: 14px !important;
-  color: #7f8c8d !important;
+  color: #6b7280 !important;
   margin: 0 !important;
   font-weight: 400 !important;
   font-family: "Jost", sans-serif !important;
@@ -1177,13 +1177,14 @@
 .fm-search-results .fm-welcome-examples-title {
   font-size: 14px !important;
   font-weight: 600 !important;
-  color: #2c3e50 !important;
+  color: #45293F !important;
   margin: 0 0 12px 0 !important;
   font-family: "Jost", sans-serif !important;
 }
 
 .fm-search-results .fm-welcome-examples-list {
   list-style: none !important;
+  list-style-type: none !important;
   padding: 0 !important;
   margin: 0 !important;
 }
@@ -1198,7 +1199,7 @@
   border-right: none !important;
   border-bottom: none !important;
   font-size: 14px !important;
-  color: #34495e !important;
+  color: #6b7280 !important;
   font-style: italic !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
@@ -1206,6 +1207,13 @@
   font-family: "Jost", sans-serif !important;
   line-height: 1.5 !important;
   box-sizing: border-box !important;
+  list-style: none !important;
+  list-style-type: none !important;
+}
+
+.fm-search-results .fm-welcome-examples-list li::before {
+  content: none !important;
+  display: none !important;
 }
 
 .fm-search-results .fm-welcome-examples-list li:last-child {

@@ -20,11 +20,8 @@
     theme: "light", // 'light' ou 'dark'
     chipMode: "always", // 'always' | 'auto' | 'never'
     placeholderExamples: [
-      "Bracelets pour le stress et la fatigue",
-      "Collier vert",
-      "Pendentifs en améthyste",
-      "Bague à moins de 30€",
-      "Boucles d'oreilles les mieux notées",
+      "Je cherche un pendentif bleu",
+      "Bijoux stress et sommeil",
     ],
     placeholderRotationDelay: 3000, // 3 secondes
   };
