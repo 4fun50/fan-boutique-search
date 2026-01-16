@@ -20,7 +20,9 @@
     theme: "light", // 'light' ou 'dark'
     chipMode: "always", // 'always' | 'auto' | 'never'
     placeholderExamples: [
+      "Collier vert",
       "Je cherche un pendentif bleu",
+      "Bracelets pour le chakra frontal",
       "Bijoux stress et sommeil",
     ],
     placeholderRotationDelay: 3000, // 3 secondes
@@ -1434,9 +1436,8 @@
     showWelcomeMessage() {
       if (!this.resultsContainer) return;
 
-      // Créer le HTML des exemples - limité à 2 exemples
+      // Créer le HTML des exemples
       const examplesHTML = this.config.placeholderExamples
-        .slice(0, 2)
         .map((example) => `<li data-example="${this.escapeHtml(example)}">"${this.escapeHtml(example)}"</li>`)
         .join("");
 
