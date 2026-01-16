@@ -480,8 +480,16 @@
             this.resultsContainer.classList.add("fm-active");
           }
         } else if (!normalized) {
-          // Afficher l'historique si l'input est vide
-          this.showSearchHistory();
+          // Vérifier si l'utilisateur a un historique
+          const history = this.getSearchHistory();
+
+          if (history && history.length > 0) {
+            // Si historique existe, l'afficher (comportement actuel)
+            this.showSearchHistory();
+          } else {
+            // Sinon, afficher le message d'accueil
+            this.showWelcomeMessage();
+          }
         }
       });
 
@@ -1420,6 +1428,58 @@
       const div = document.createElement("div");
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    /**
+     * Affiche le message d'accueil pour les nouveaux utilisateurs
+     * (quand pas d'historique et input vide au focus)
+     */
+    showWelcomeMessage() {
+      if (!this.resultsContainer) return;
+
+      // Créer le HTML des exemples - limité à 2 exemples
+      const examplesHTML = this.config.placeholderExamples
+        .slice(0, 2)
+        .map((example) => `<li data-example="${this.escapeHtml(example)}">"${this.escapeHtml(example)}"</li>`)
+        .join("");
+
+      const welcomeHTML = `
+        <div class="fm-welcome-message">
+          <div class="fm-welcome-header">
+            <h3 class="fm-welcome-title">Bienvenue sur le moteur de recherche France Minéraux</h3>
+            <p class="fm-welcome-subtitle">Recherchez en langage naturel</p>
+          </div>
+          <div class="fm-welcome-examples">
+            <p class="fm-welcome-examples-title">Exemples de recherche :</p>
+            <ul class="fm-welcome-examples-list">
+              ${examplesHTML}
+            </ul>
+          </div>
+        </div>
+      `;
+
+      // Injecter dans le conteneur
+      this.resultsContainer.innerHTML = welcomeHTML;
+      this.setWideMode(false);
+
+      // Ajouter les event listeners sur les exemples pour les rendre cliquables
+      setTimeout(() => {
+        const exampleItems = this.resultsContainer.querySelectorAll('.fm-welcome-examples-list li');
+        exampleItems.forEach((item) => {
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const exampleText = item.getAttribute('data-example');
+            if (exampleText) {
+              this.inputElement.value = exampleText;
+              this.updateClearButtonVisibility();
+              this.performSearch(exampleText);
+            }
+          });
+        });
+      }, 0);
+
+      // Afficher le volet
+      this.resultsContainer.classList.add('fm-active');
     }
 
     destroy() {

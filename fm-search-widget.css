@@ -1130,3 +1130,147 @@
 .fm-search-results[data-theme="dark"] .fm-history-text {
   color: white;
 }
+
+/* ========================================
+   Message d'accueil (Welcome Message)
+   ======================================== */
+
+/* Conteneur principal du message d'accueil */
+.fm-welcome-message {
+  padding: 24px;
+  text-align: center;
+  font-family: "Jost", sans-serif;
+}
+
+/* En-tête du message */
+.fm-welcome-header {
+  margin-bottom: 24px;
+}
+
+.fm-welcome-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.fm-welcome-subtitle {
+  font-size: 14px;
+  color: #7f8c8d;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Section exemples */
+.fm-welcome-examples {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+}
+
+.fm-welcome-examples-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 12px 0;
+}
+
+.fm-welcome-examples-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.fm-welcome-examples-list li {
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: white;
+  border-radius: 8px;
+  border-left: 3px solid #d7b984;
+  font-size: 14px;
+  color: #34495e;
+  font-style: italic;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 400;
+}
+
+.fm-welcome-examples-list li:last-child {
+  margin-bottom: 0;
+}
+
+.fm-welcome-examples-list li:hover {
+  background-color: #fef6e8;
+  transform: translateX(4px);
+  border-left-color: #c9a871;
+}
+
+.fm-welcome-examples-list li:active {
+  transform: translateX(4px) scale(0.98);
+}
+
+/* Mode sombre pour le message d'accueil */
+.fm-search-results[data-theme="dark"] .fm-welcome-title {
+  color: #f3f4f6;
+}
+
+.fm-search-results[data-theme="dark"] .fm-welcome-subtitle {
+  color: #9ca3af;
+}
+
+.fm-search-results[data-theme="dark"] .fm-welcome-examples {
+  background: #1f2937;
+}
+
+.fm-search-results[data-theme="dark"] .fm-welcome-examples-title {
+  color: #f3f4f6;
+}
+
+.fm-search-results[data-theme="dark"] .fm-welcome-examples-list li {
+  background: #374151;
+  color: #d1d5db;
+  border-left-color: #d7b984;
+}
+
+.fm-search-results[data-theme="dark"] .fm-welcome-examples-list li:hover {
+  background-color: #4b5563;
+  border-left-color: #e8c896;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 768px) {
+  .fm-welcome-message {
+    padding: 16px;
+  }
+
+  .fm-welcome-header {
+    margin-bottom: 20px;
+  }
+
+  .fm-welcome-title {
+    font-size: 16px;
+  }
+
+  .fm-welcome-subtitle {
+    font-size: 13px;
+  }
+
+  .fm-welcome-examples {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .fm-welcome-examples-title {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .fm-welcome-examples-list li {
+    font-size: 13px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+  }
+}
