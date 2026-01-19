@@ -32,18 +32,14 @@ export default async (req) => {
     };
 
     const requestOrigin = req.headers.get("origin") || "";
-    const configuredAllowedOrigins = getEnv("FM_ALLOWED_ORIGINS");
+    const configuredAllowedOrigins = getEnv("FB_ALLOWED_ORIGINS");
     const allowedOrigins = new Set(
       configuredAllowedOrigins
         ? configuredAllowedOrigins
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean)
-        : [
-            "https://france-mineraux.fr",
-            "https://www.france-mineraux.fr",
-            "https://staging.france-mineraux.fr",
-          ]
+        : [] // Configurer FB_ALLOWED_ORIGINS dans les variables d'environnement Netlify
     );
     const isAllowedOrigin = requestOrigin && allowedOrigins.has(requestOrigin);
 
@@ -214,18 +210,8 @@ export default async (req) => {
     console.error("Unhandled error in search function", e);
 
     const requestOrigin = req?.headers?.get("origin") || "";
-    const fallbackAllowedOrigins = new Set([
-      "https://france-mineraux.fr",
-      "https://www.france-mineraux.fr",
-      "https://staging.france-mineraux.fr",
-    ]);
-    const fallbackCorsHeaders =
-      requestOrigin && fallbackAllowedOrigins.has(requestOrigin)
-        ? {
-            "Access-Control-Allow-Origin": requestOrigin,
-            Vary: "Origin",
-          }
-        : {};
+    // En cas d'erreur, pas de CORS permissif - les origines doivent être configurées via FB_ALLOWED_ORIGINS
+    const fallbackCorsHeaders = {};
 
     return new Response(
       JSON.stringify({

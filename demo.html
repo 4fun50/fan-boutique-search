@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Démo - France Minéraux Search</title>
+    <title>Démo - Fan Boutique Search</title>
 
     <!-- Widget CSS -->
-    <link rel="stylesheet" href="fm-search-widget.css">
+    <link rel="stylesheet" href="fb-search-widget.css">
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap');
@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #45293F 0%, #2a1a28 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             display: flex;
             align-items: flex-start;
@@ -32,20 +32,20 @@
             background: white;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(69, 41, 63, 0.4);
+            box-shadow: 0 20px 60px rgba(26, 26, 46, 0.4);
             max-width: 600px;
             width: 100%;
         }
 
         h1 {
-            color: #45293F;
+            color: #1a1a2e;
             margin-bottom: 30px;
             text-align: center;
             font-size: 28px;
             font-weight: 600;
         }
 
-        d .search-wrapper {
+        .search-wrapper {
             position: relative;
         }
 
@@ -61,7 +61,7 @@
         }
 
         .search-input:focus {
-            border-color: #45293F;
+            border-color: #1a1a2e;
         }
 
         @media (max-width: 768px) {
@@ -78,7 +78,7 @@
 
 <body>
     <div class="demo-container">
-        <h1>🔍 France Minéraux Search</h1>
+        <h1>🔍 Fan Boutique Search</h1>
 
         <div class="search-wrapper">
             <input type="text" id="search-input" class="search-input"
@@ -88,11 +88,11 @@
     </div>
 
     <!-- Widget JavaScript -->
-    <script src="france-mineraux-search-widget.js?v=20250104-0232"></script>
+    <script src="fan-boutique-search-widget.js"></script>
 
     <!-- Initialisation -->
     <script>
-        new FranceMinerauxSearchWidget('#search-input');
+        new FanBoutiqueSearchWidget('#search-input');
     </script>
 </body>
 

@@ -1,5 +1,5 @@
 /**
- * France Minéraux Search Widget
+ * Fan Boutique Search Widget
  * Widget de recherche vectorielle intégrable facilement
  * Version: 1.0.0
  */
@@ -9,8 +9,7 @@
 
   // Configuration par défaut
   const DEFAULT_CONFIG = {
-    webhookUrl:
-      "https://france-mineraux-search.netlify.app/.netlify/functions/search",
+    webhookUrl: "", // À configurer lors de l'initialisation
     minChars: 4,
     debounceDelay: 800,
     maxResults: 400,
@@ -20,22 +19,22 @@
     theme: "light", // 'light' ou 'dark'
     chipMode: "always", // 'always' | 'auto' | 'never'
     placeholderExamples: [
-      "Collier vert",
-      "Je cherche un pendentif bleu",
-      "Bracelets pour le chakra frontal",
-      "Bijoux stress et sommeil",
+      "Maillot PSG",
+      "Casquette Lakers",
+      "T-shirt NBA noir",
+      "Survêtement football",
     ],
     placeholderRotationDelay: 3000, // 3 secondes
   };
 
-  class FranceMinerauxSearchWidget {
+  class FanBoutiqueSearchWidget {
     constructor(inputSelector, config = {}) {
       this.config = { ...DEFAULT_CONFIG, ...config };
       this.inputElement = document.querySelector(inputSelector);
 
       if (!this.inputElement) {
         console.error(
-          `France Minéraux Search Widget: Element "${inputSelector}" not found`
+          `Fan Boutique Search Widget: Element "${inputSelector}" not found`
         );
         return;
       }
@@ -73,7 +72,7 @@
       this.typingCharIndex = 0;
       this.isDeleting = false;
       this.currentQuery = "";
-      this.historyKey = "fm_search_history";
+      this.historyKey = "fb_search_history";
       this.maxHistoryItems = 3;
 
       this.init();
@@ -1134,11 +1133,11 @@
     setSearchUsedCookie() {
       const expires = new Date();
       expires.setDate(expires.getDate() + 30);
-      document.cookie = `fm_search_used=1; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+      document.cookie = `fb_search_used=1; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
 
       try {
-        localStorage.setItem("fm_search_used", "1");
-        localStorage.setItem("fm_search_timestamp", Date.now().toString());
+        localStorage.setItem("fb_search_used", "1");
+        localStorage.setItem("fb_search_timestamp", Date.now().toString());
       } catch (e) {
         console.warn("localStorage non disponible pour le tracking");
       }
@@ -1490,5 +1489,5 @@
   }
 
   // Exposer la classe globalement
-  window.FranceMinerauxSearchWidget = FranceMinerauxSearchWidget;
+  window.FanBoutiqueSearchWidget = FanBoutiqueSearchWidget;
 })();
