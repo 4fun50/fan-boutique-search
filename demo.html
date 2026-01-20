@@ -92,7 +92,9 @@
 
     <!-- Initialisation -->
     <script>
-        new FanBoutiqueSearchWidget('#search-input');
+        new FanBoutiqueSearchWidget('#search-input', {
+            webhookUrl: '/.netlify/functions/search'
+        });
     </script>
 </body>
 
