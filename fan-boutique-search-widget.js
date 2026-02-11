@@ -19,10 +19,16 @@
     theme: "light", // 'light' ou 'dark'
     chipMode: "always", // 'always' | 'auto' | 'never'
     placeholderExamples: [
-      "Maillot PSG",
-      "Casquette Lakers",
-      "T-shirt NBA noir",
-      "Survêtement football",
+      "Je cherche un ventilateur pour ma chambre",
+      "Grand ventilateur noir moderne avec lumière",
+      "Un ventilateur qui ne fait pas de bruit",
+      "Ventilateur extérieur pour terrasse",
+      "Je veux un ventilateur en bois style nature",
+      "Ventilateur DC blanc avec télécommande",
+      "Quel ventilateur pour un grand salon ?",
+      "Ventilateur plafond pas cher",
+      "Destratificateur pour plafond haut",
+      "Un ventilateur discret pour un petit bureau",
     ],
     placeholderRotationDelay: 3000, // 3 secondes
   };
