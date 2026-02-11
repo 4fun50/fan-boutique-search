@@ -819,64 +819,32 @@
       };
 
       let descriptionHTML = "";
-      if (product.details && product.details.vertus) {
-        descriptionHTML += `<div class="fm-product-attribute">Vertus: ${product.details.vertus}</div>`;
-      }
-      if (product.details && product.details.signes) {
-        descriptionHTML += `<div class="fm-product-attribute">Signe astro: ${product.details.signes}</div>`;
+      if (product.description) {
+        descriptionHTML += `<div class="fm-product-attribute">${escapeHTML(product.description)}</div>`;
       }
 
-      const detailsVertus = product.details?.vertus;
-      const detailsSignes = product.details?.signes;
-      const detailsStone = product.details?.pierre;
-
-      let detailsChakras = product.details?.chakras ?? product.details?.chakra;
-      if (
-        (detailsChakras === undefined ||
-          detailsChakras === null ||
-          `${detailsChakras}`.trim() === "") &&
-        product.details &&
-        typeof product.details === "object"
-      ) {
-        for (const [key, value] of Object.entries(product.details)) {
-          if (!/chakra/i.test(key)) continue;
-          if (value === undefined || value === null) continue;
-          if (typeof value === "object") continue;
-          const str = `${value}`.trim();
-          if (!str) continue;
-          detailsChakras = str;
-          break;
-        }
-      }
+      const detailsConfig = [
+        { key: "style", label: "Style" },
+        { key: "couleur_moteur", label: "Couleur moteur" },
+        { key: "couleur_pales", label: "Couleur pales" },
+        { key: "type_moteur", label: "Moteur" },
+        { key: "silence", label: "Silencieux" },
+        { key: "diametre", label: "Diamètre" },
+        { key: "nombre_pales", label: "Pales" },
+        { key: "telecommande", label: "Télécommande" },
+        { key: "garantie", label: "Garantie" },
+      ];
 
       const detailsRows = [];
-      if (detailsVertus) {
-        detailsRows.push(
-          `<div class="fm-product-detail-row"><span class="fm-product-detail-label">Vertus</span><span class="fm-product-detail-value">${escapeHTML(
-            detailsVertus
-          )}</span></div>`
-        );
-      }
-      if (detailsSignes) {
-        detailsRows.push(
-          `<div class="fm-product-detail-row"><span class="fm-product-detail-label">Signe astrologique</span><span class="fm-product-detail-value">${escapeHTML(
-            detailsSignes
-          )}</span></div>`
-        );
-      }
-      if (detailsChakras) {
-        detailsRows.push(
-          `<div class="fm-product-detail-row"><span class="fm-product-detail-label">Chakras</span><span class="fm-product-detail-value">${escapeHTML(
-            detailsChakras
-          )}</span></div>`
-        );
-      }
-      if (detailsStone) {
-        detailsRows.push(
-          `<div class="fm-product-detail-row"><span class="fm-product-detail-label">Pierre</span><span class="fm-product-detail-value">${escapeHTML(
-            detailsStone
-          )}</span></div>`
-        );
+      if (product.details && typeof product.details === "object") {
+        for (const { key, label } of detailsConfig) {
+          const value = product.details[key];
+          if (value && `${value}`.trim()) {
+            detailsRows.push(
+              `<div class="fm-product-detail-row"><span class="fm-product-detail-label">${label}</span><span class="fm-product-detail-value">${escapeHTML(value)}</span></div>`
+            );
+          }
+        }
       }
 
       const accordionHTML =
