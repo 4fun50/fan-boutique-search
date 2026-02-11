@@ -33,15 +33,39 @@ export default async (req) => {
 
     const requestOrigin = req.headers.get("origin") || "";
     const configuredAllowedOrigins = getEnv("FB_ALLOWED_ORIGINS");
-    const allowedOrigins = new Set(
-      configuredAllowedOrigins
-        ? configuredAllowedOrigins
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [] // Configurer FB_ALLOWED_ORIGINS dans les variables d'environnement Netlify
-    );
-    const isAllowedOrigin = requestOrigin && allowedOrigins.has(requestOrigin);
+    const originEntries = configuredAllowedOrigins
+      ? configuredAllowedOrigins
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+
+    const exactOrigins = new Set();
+    const wildcardSuffixes = [];
+    for (const entry of originEntries) {
+      if (entry.includes("://*.")) {
+        // "https://*.example.com" → match tout sous-domaine de example.com
+        const suffix = entry.replace("://*.", "://").replace(/^https?:\/\//, ".");
+        wildcardSuffixes.push({ suffix, scheme: entry.startsWith("https") ? "https" : "http" });
+      } else {
+        exactOrigins.add(entry);
+      }
+    }
+
+    const matchesWildcard = (origin) => {
+      try {
+        const url = new URL(origin);
+        return wildcardSuffixes.some(
+          (w) => url.protocol === w.scheme + ":" && url.hostname.endsWith(w.suffix.slice(1))
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    const isAllowedOrigin =
+      requestOrigin &&
+      (exactOrigins.has(requestOrigin) || matchesWildcard(requestOrigin));
 
     const corsHeaders = isAllowedOrigin
       ? {
