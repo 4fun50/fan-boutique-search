@@ -40,6 +40,10 @@ Widget JS (navigateur)
 - Search history (localStorage with `fb_search_history` key)
 - Rate limit error handling
 - Load more pagination
+- Welcome message with examples responsifs (4 mobile / 6 desktop)
+- Accordion de détails produit via `detailsConfig` array (facile à modifier)
+- Affichage prix promo (barré + badge -XX%) automatique si `prix_promo` fourni
+- Badge "Rupture de stock" + opacité réduite pour produits hors stock
 
 **Serverless Function** (`netlify/functions/search.mjs`): Proxies requests to n8n webhook with:
 - Origin-based CORS (`FB_ALLOWED_ORIGINS` env var, supporte les wildcards `https://*.ventilateurs-plafond.com`)
@@ -57,6 +61,17 @@ Widget JS (navigateur)
 - Table `fan_boutique_rate_limit` : rate limiting par IP (minute + jour)
 - Fonction RPC `fan_boutique_check_rate_limit` : vérification atomique des limites
 - Fonction RPC `fan_boutique_search_v1` : recherche vectorielle avec filtres structurés
+  - Tri par `effective_price` = `COALESCE(sale_price, price)` pour les modes `price_asc`/`price_desc`
+  - Produits en rupture (stock=0) poussés en bas des résultats via ORDER BY
+
+**Métadonnées produits principales** (champs JSONB dans `fan_boutique_products.metadata`):
+- `name` : nom du produit
+- `price` : prix TTC (calculé lors de la vectorisation, pas de conversion nécessaire)
+- `sale_price` : prix promo TTC (null si pas de promo)
+- `stock` : quantité en stock (0 = rupture)
+- `image_url` : URL image produit
+- `product_url` : URL page produit
+- `content` : description du produit (colonne séparée, pas dans metadata)
 
 **Métadonnées produits filtrables** (champs JSONB dans `fan_boutique_products.metadata`):
 - `styles` : Classique, Moderne, Industriel, Tropical, Design, Nordique, Rustique
@@ -116,8 +131,43 @@ new FanBoutiqueSearchWidget('#search-input', {
   debounceDelay: 800,
   initialResults: 100,
   loadMoreStep: 50,
-  placeholderExamples: ['...']  // Typewriter examples
+  placeholderExamples: [        // Typewriter examples (mix néophyte + expert)
+    "Je cherche un ventilateur pour ma chambre",
+    "Grand ventilateur noir moderne avec lumière",
+    "Un ventilateur qui ne fait pas de bruit",
+    "Ventilateur DC blanc avec télécommande",
+    // ... 10 exemples au total
+  ]
 });
+```
+
+## Format de réponse n8n → Widget
+
+Le node n8n "Recover all values for frontend" formate les données pour le widget :
+```json
+{
+  "results": [{
+    "titre": "Nom du produit",
+    "prix": 199.00,
+    "prix_promo": 149.00,
+    "en_stock": true,
+    "image": "https://...",
+    "url": "https://...",
+    "description": "Extrait de 120 caractères...",
+    "score_similarite": "85%",
+    "details": {
+      "style": "Moderne",
+      "couleur_moteur": "Blanc",
+      "couleur_pales": "Bois",
+      "type_moteur": "DC",
+      "silence": "Oui",
+      "diametre": "132 cm",
+      "nombre_pales": "5",
+      "telecommande": "Oui",
+      "garantie": "25 ans"
+    }
+  }]
+}
 ```
 
 ## Color Scheme

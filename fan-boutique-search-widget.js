@@ -1040,6 +1040,11 @@
         }
       }
 
+      const isOutOfStock = product.en_stock === false;
+      const stockBadgeHTML = isOutOfStock
+        ? `<div class="fm-product-stock-badge">Rupture de stock</div>`
+        : "";
+
       const price = formatPrice(originalValue);
       const promo = hasValidPromo ? formatPrice(promoValue) : null;
 
@@ -1056,12 +1061,15 @@
         }</span>`;
       })();
 
+      const outOfStockClass = isOutOfStock ? " fm-product-result--out-of-stock" : "";
+
       return `
-        <a href="${product.url}" class="fm-product-result">
+        <a href="${product.url}" class="fm-product-result${outOfStockClass}">
           <div class="fm-product-image-wrapper">
-            <img src="${product.image}" alt="${productName}" class="fm-product-image" 
+            <img src="${product.image}" alt="${productName}" class="fm-product-image"
               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'">
             ${discountBadgeImageHTML}
+            ${stockBadgeHTML}
           </div>
           <div class="fm-product-info">
             <div class="fm-product-name">${productName}</div>
