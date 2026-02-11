@@ -1409,8 +1409,10 @@
     showWelcomeMessage() {
       if (!this.resultsContainer) return;
 
-      // Créer le HTML des exemples
+      // Limiter le nombre d'exemples : 4 sur mobile, 6 sur desktop
+      const maxExamples = window.innerWidth < 768 ? 4 : 6;
       const examplesHTML = this.config.placeholderExamples
+        .slice(0, maxExamples)
         .map((example) => `<li data-example="${this.escapeHtml(example)}">"${this.escapeHtml(example)}"</li>`)
         .join("");
 
