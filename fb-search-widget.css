@@ -39,9 +39,9 @@
   gap: 8px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #f3f4f6;
-  border: 1px solid rgba(255, 117, 14, 0.25);
-  color: #ff750e;
+  background: #ff750e;
+  border: none;
+  color: #fff;
   font-family: "Jost", sans-serif;
   font-size: 14px;
   line-height: 18px;
@@ -67,7 +67,7 @@
   appearance: none;
   border: none;
   background: transparent;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.8);
   width: 20px;
   height: 20px;
   padding: 0;
@@ -91,13 +91,13 @@
 }
 
 [data-fm-chip="1"][data-fm-theme="dark"] .fm-query-chip {
-  background: #374151;
-  border-color: rgba(243, 244, 246, 0.22);
-  color: #f3f4f6;
+  background: #ff750e;
+  border: none;
+  color: #fff;
 }
 
 [data-fm-chip="1"][data-fm-theme="dark"] .fm-query-chip-clear {
-  color: #d1d5db;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Placeholder = texte automatique */
