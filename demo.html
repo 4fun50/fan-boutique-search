@@ -11,6 +11,7 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
         * {
             margin: 0;
@@ -20,7 +21,7 @@
 
         body {
             font-family: 'Roboto', sans-serif;
-            background: #06254A;
+            background: #FFFFFF;
             min-height: 100vh;
             display: flex;
             align-items: flex-start;
@@ -29,18 +30,20 @@
         }
 
         .demo-container {
-            max-width: 600px;
+            background: #06254A;
+            padding: 30px 40px 40px;
+            border-radius: 12px;
+            max-width: 700px;
             width: 100%;
         }
 
         .demo-header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .demo-logo {
             height: 50px;
-            margin-bottom: 8px;
         }
 
         .search-wrapper {
@@ -76,13 +79,17 @@
             top: 50%;
             transform: translateY(-50%);
             color: #F36800;
-            font-size: 24px;
+            font-size: 30px;
             pointer-events: none;
         }
 
         @media (max-width: 768px) {
             body {
                 padding: 30px 12px 12px;
+            }
+
+            .demo-container {
+                padding: 24px 16px 30px;
             }
         }
     </style>
@@ -98,10 +105,7 @@
         <div class="search-wrapper">
             <input type="text" id="search-input" class="search-input"
                 placeholder="Rechercher">
-            <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
+            <i class="material-icons search-icon">search</i>
         </div>
 
     </div>
