@@ -19,16 +19,13 @@
     theme: "light", // 'light' ou 'dark'
     chipMode: "always", // 'always' | 'auto' | 'never'
     placeholderExamples: [
-      "Je cherche un ventilateur pour ma chambre",
-      "Grand ventilateur noir moderne avec lumière",
-      "Un ventilateur qui ne fait pas de bruit",
-      "Ventilateur extérieur pour terrasse",
-      "Je veux un ventilateur en bois style nature",
-      "Ventilateur DC blanc avec télécommande",
-      "Quel ventilateur pour un grand salon ?",
-      "Ventilateur plafond pas cher",
-      "Destratificateur pour plafond haut",
-      "Un ventilateur discret pour un petit bureau",
+      "Ventilateur silencieux pour chambre",
+      "Ventilateur pour salon avec lumière",
+      "Ventilateur DC noir avec pales en bois",
+      "Déstratificateur pour surface 50m2",
+      "Grand ventilateur blanc moderne avec LED",
+      "Meilleures ventes",
+      "Déstratificateur entre 300 et 500€",
     ],
     placeholderRotationDelay: 3000, // 3 secondes
   };
