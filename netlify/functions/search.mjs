@@ -93,7 +93,7 @@ export default async (req) => {
           status: 405,
           headers: {
             ...corsHeaders,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
           },
         }
       );
@@ -118,7 +118,7 @@ export default async (req) => {
           status: 500,
           headers: {
             ...corsHeaders,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
           },
         }
       );
@@ -132,7 +132,7 @@ export default async (req) => {
         status: 400,
         headers: {
           ...corsHeaders,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=utf-8",
         },
       });
     }
@@ -144,7 +144,7 @@ export default async (req) => {
         status: 400,
         headers: {
           ...corsHeaders,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=utf-8",
         },
       });
     }
@@ -176,7 +176,7 @@ export default async (req) => {
       "";
 
     const headers = {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json; charset=utf-8",
     };
 
     if (authHeaderName && authHeaderValue) {
@@ -205,7 +205,7 @@ export default async (req) => {
           status: 502,
           headers: {
             ...corsHeaders,
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
           },
         }
       );
@@ -227,7 +227,7 @@ export default async (req) => {
       status: upstream.status,
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json; charset=utf-8",
       },
     });
   } catch (e) {
@@ -246,7 +246,7 @@ export default async (req) => {
         status: 500,
         headers: {
           ...fallbackCorsHeaders,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=utf-8",
         },
       }
     );
