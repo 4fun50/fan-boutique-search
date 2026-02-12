@@ -55,14 +55,17 @@ Widget JS (navigateur)
 **n8n** (hébergé sur `n8n.guillaume-gonano.com`):
 - Webhook: `fan-boutique-search-engine` (Header Auth)
 - Orchestre le pipeline : rate limit → LLM parsing → embedding → recherche vectorielle → formatage
+- ⚠️ Node "Supabase request" (HTTP Request) : Response Format doit être forcé en **JSON** (pas Autodetect) sinon mojibake UTF-8 sur les grosses réponses
 
 **Supabase** (hébergé sur `supabase.guillaume-gonano.com`):
 - Table `fan_boutique_products` : 4140 produits avec embeddings vectoriels et métadonnées JSONB
 - Table `fan_boutique_rate_limit` : rate limiting par IP (minute + jour)
 - Fonction RPC `fan_boutique_check_rate_limit` : vérification atomique des limites
-- Fonction RPC `fan_boutique_search_v1` : recherche vectorielle avec filtres structurés
+- Fonction RPC `fan_boutique_search_v1` : recherche vectorielle avec filtres structurés (19 paramètres)
+  - `p_category` : filtre par catégorie produit (défaut: "ventilateur" via LLM). Utilise `ILIKE p_category || '%'` sur le tableau JSONB `metadata.categories`
   - Tri par `effective_price` = `COALESCE(sale_price, price)` pour les modes `price_asc`/`price_desc`
   - Produits en rupture (stock=0) poussés en bas des résultats via ORDER BY
+  - `NULLIF` appliqué sur les casts `::integer` et `::numeric` pour gérer les valeurs vides dans les métadonnées
 
 **Métadonnées produits principales** (champs JSONB dans `fan_boutique_products.metadata`):
 - `name` : nom du produit
@@ -72,6 +75,7 @@ Widget JS (navigateur)
 - `image_url` : URL image produit
 - `product_url` : URL page produit
 - `content` : description du produit (colonne séparée, pas dans metadata)
+- `categories` : tableau JSON de catégories PrestaShop (ex: `["Ventilateurs de Plafond pour Salons", "Ventilateur Plafond Silencieux", ...]`)
 
 **Métadonnées produits filtrables** (champs JSONB dans `fan_boutique_products.metadata`):
 - `styles` : Classique, Moderne, Industriel, Tropical, Design, Nordique, Rustique
