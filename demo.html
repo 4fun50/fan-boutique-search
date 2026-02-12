@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="fb-search-widget.css">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
         * {
             margin: 0;
@@ -19,8 +19,8 @@
         }
 
         body {
-            font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Roboto', sans-serif;
+            background: #06254A;
             min-height: 100vh;
             display: flex;
             align-items: flex-start;
@@ -29,48 +29,60 @@
         }
 
         .demo-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(26, 26, 46, 0.4);
             max-width: 600px;
             width: 100%;
         }
 
-        h1 {
-            color: #1a1a2e;
-            margin-bottom: 30px;
+        .demo-header {
             text-align: center;
-            font-size: 28px;
-            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .demo-logo {
+            height: 50px;
+            margin-bottom: 8px;
         }
 
         .search-wrapper {
             position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .search-input {
             width: 100%;
-            padding: 16px 24px;
-            border: 2px solid #e5e7eb;
-            border-radius: 50px;
+            padding: 12px 48px 12px 16px;
+            background: #083161;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            border-radius: 0;
             font-size: 16px;
-            font-family: 'Jost', sans-serif;
+            font-family: 'Roboto', sans-serif;
+            color: #FFFFFF;
             outline: none;
             transition: border-color 0.3s;
         }
 
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
         .search-input:focus {
-            border-color: #1a1a2e;
+            border-color: #F36800;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #F36800;
+            font-size: 24px;
+            pointer-events: none;
         }
 
         @media (max-width: 768px) {
             body {
                 padding: 30px 12px 12px;
-            }
-
-            .demo-container {
-                padding: 24px 16px;
             }
         }
     </style>
@@ -78,11 +90,18 @@
 
 <body>
     <div class="demo-container">
-        <h1>🔍 Fan Boutique Search</h1>
+        <div class="demo-header">
+            <img src="https://www.ventilateurs-plafond.com/img/ventilateurs-plafond-logo-1636530166.jpg"
+                alt="Fan Boutique" class="demo-logo">
+        </div>
 
         <div class="search-wrapper">
             <input type="text" id="search-input" class="search-input"
-                placeholder="Décrivez ce que vous recherchez en langage naturel...">
+                placeholder="Rechercher">
+            <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
         </div>
 
     </div>
