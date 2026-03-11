@@ -1,2 +1,24 @@
 # Local Netlify folder
 .netlify
+
+# Environment variables (API keys)
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# LLM enrichment output (fichiers temporaires volumineux)
+llm-enrichment/output/
+
+# Archive (ancien code V1, gardé en local)
+archive/
+
+# n8n workflow exports
+*.json
+!package.json
+!package-lock.json
+
+# OS files
+.DS_Store

@@ -15,7 +15,14 @@ Fan Boutique Search Widget - Moteur de recherche sémantique pour ventilateurs-p
 ├── fb-search-widget.css           # Widget styling (uses .fm-* class prefix)
 ├── netlify/functions/search.mjs   # Serverless proxy function
 ├── demo.html                      # Test page
-└── netlify.toml                   # Netlify configuration
+├── netlify.toml                   # Netlify configuration
+├── llm-enrichment/                # Pipeline d'enrichissement LLM (V2)
+│   ├── enrich_products.py         # Script principal (parallélisé, 20 workers)
+│   └── enrichment_prompt.md       # Prompt d'enrichissement produit
+├── prompts/
+│   └── llm-parser-v6-v2db.md     # Prompt LLM Parser actif (V2)
+├── test-llm-parser.mjs           # Test direct du LLM Parser
+└── archive/                       # Code V1 archivé (gitignored)
 ```
 
 ### Chaîne complète (flux de données)
@@ -27,7 +34,9 @@ Widget JS (navigateur)
       → Rate limit check (Supabase RPC: fan_boutique_check_rate_limit)
       → LLM Parser (GPT-4.1-mini: extraction de filtres structurés)
       → OpenAI Embedding (vectorisation de la requête)
-      → Supabase RPC: fan_boutique_search_v1 (recherche vectorielle + filtres)
+      → Code node "Build Supabase Payload" (sérialisation JSON propre)
+      → Supabase RPC: fan_boutique_search_v2 (recherche vectorielle + filtres)
+      → Code node "Recover all values for frontend" (formatage réponse)
     → Réponse formatée au widget
 ```
 
@@ -54,42 +63,80 @@ Widget JS (navigateur)
 
 **n8n** (hébergé sur `n8n.guillaume-gonano.com`):
 - Webhook: `fan-boutique-search-engine` (Header Auth)
-- Orchestre le pipeline : rate limit → LLM parsing → embedding → recherche vectorielle → formatage
-- ⚠️ Node "Supabase request" (HTTP Request) : Response Format doit être forcé en **JSON** (pas Autodetect) sinon mojibake UTF-8 sur les grosses réponses
+- Orchestre le pipeline : rate limit → LLM parsing → embedding → build payload → recherche vectorielle → formatage
+- ⚠️ Node "Supabase request" (HTTP Request) : Response Format doit être forcé en **JSON** (pas Autodetect) sinon mojibake UTF-8
+- ⚠️ Le payload Supabase doit passer par un **Code node** (pas "Using JSON" direct) car les champs tableau (p_style, p_couleur_moteur, etc.) ne se sérialisent pas correctement en mode expression
 
 **Supabase** (hébergé sur `supabase.guillaume-gonano.com`):
-- Table `fan_boutique_products` : 4140 produits avec embeddings vectoriels et métadonnées JSONB
+- Table `fan_boutique_products_v2` : ~3779 produits avec colonnes typées + embeddings vectoriels
 - Table `fan_boutique_rate_limit` : rate limiting par IP (minute + jour)
 - Fonction RPC `fan_boutique_check_rate_limit` : vérification atomique des limites
-- Fonction RPC `fan_boutique_search_v1` : recherche vectorielle avec filtres structurés (19 paramètres)
-  - `p_category` : filtre par catégorie produit (défaut: "ventilateur" via LLM). Utilise `ILIKE p_category || '%'` sur le tableau JSONB `metadata.categories`
-  - Tri par `effective_price` = `COALESCE(sale_price, price)` pour les modes `price_asc`/`price_desc`
-  - Produits en rupture (stock=0) poussés en bas des résultats via ORDER BY
-  - `NULLIF` appliqué sur les casts `::integer` et `::numeric` pour gérer les valeurs vides dans les métadonnées
+- Fonction RPC `fan_boutique_search_v2` : recherche vectorielle avec filtres structurés (37 paramètres)
+- Index IVFFlat (lists=60) pour la recherche vectorielle cosine
 
-**Métadonnées produits principales** (champs JSONB dans `fan_boutique_products.metadata`):
-- `name` : nom du produit
-- `price` : prix TTC (calculé lors de la vectorisation, pas de conversion nécessaire)
-- `sale_price` : prix promo TTC (null si pas de promo)
-- `stock` : quantité en stock (0 = rupture)
-- `image_url` : URL image produit
-- `product_url` : URL page produit
-- `content` : description du produit (colonne séparée, pas dans metadata)
-- `categories` : tableau JSON de catégories PrestaShop (ex: `["Ventilateurs de Plafond pour Salons", "Ventilateur Plafond Silencieux", ...]`)
+### Base de données V2 — Table `fan_boutique_products_v2`
 
-**Métadonnées produits filtrables** (champs JSONB dans `fan_boutique_products.metadata`):
-- `styles` : Classique, Moderne, Industriel, Tropical, Design, Nordique, Rustique
-- `couleur_du_moteur` : ~23 valeurs (Blanc, Noir, Nickel, Chrome, Bois, etc.)
-- `couleurs_des_pales` : ~50 valeurs
-- `type_de_moteur_ac_ou_dc` : AC, DC
-- `hyper_silence` : Oui, Non
-- `livre_avec_lumiere` : Oui, Non
-- `wifi` : Oui, Non
-- `ip` : IP20, IP44 (indicateur extérieur)
-- `option_destratificateur` : Oui, Non
-- `nombre_de_pales_maximum` : 2-8
-- `diametre_total_cm` : numérique
-- `prix` : numérique
+Colonnes principales :
+- `id`, `prestashop_id`, `nom`, `prix_ttc`, `prix_promo`, `en_stock`, `stock`
+- `image_url`, `product_url`, `description_courte`, `description_longue`
+
+Attributs LLM normalisés (colonnes typées, pas JSONB) :
+- `type_produit` : ventilateur_plafond, ventilateur_table, ventilateur_sur_pied, ventilateur_mural, ventilateur_colonne, destratificateur, brasseur_air, climatiseur, humidificateur, chauffage, cheminee, accessoire
+- `style` : moderne, classique, industriel, tropical, design, nordique, rustique, retro, minimaliste, enfant, exterieur
+- `couleur_moteur`, `couleur_pales` : valeurs normalisées (blanc, noir, nickel_brosse, etc.)
+- `type_moteur` : dc, ac
+- `marque`, `gamme` : strings
+- `pieces` : tableau PostgreSQL text[] (salon, chambre, chambre_enfant, etc.)
+- Booléens : `silencieux`, `avec_lumiere`, `avec_telecommande`, `wifi`, `reversible`, `option_destratificateur`, `usage_exterieur`, `plafond_en_pente`, `commande_vocale`, `app_telephone`, `lumiere_dimmable`, `sonde_thermostatique`, `prolongateur_dispo`, `boitier_mural_adaptable`
+- Numériques : `diametre_cm`, `nombre_pales`, `surface_min_m2`, `surface_max_m2`, `distance_plafond_pales_cm`, `surface_destrat_m2`, `score_reparabilite`
+- Texte : `matiere_pales`, `garantie`, `hauteur_max_destrat`, `longueur_max_prolongateur`
+- `embedding` : vector(1536), `total_sales` : integer
+
+Distribution des types de produit :
+- ventilateur_plafond: 2978, accessoire: 455, (null): 76, brasseur_air: 50, chauffage: 48
+- ventilateur_sur_pied: 39, destratificateur: 32, ventilateur_table: 24, climatiseur: 21
+- autre: 16, humidificateur: 13, cheminee: 11, ventilateur_mural: 9, ventilateur_colonne: 6
+
+### RPC `fan_boutique_search_v2` — Paramètres
+
+37 paramètres, tous optionnels. Filtrage par matching exact sur colonnes typées.
+- `p_type_produit` : filtre exact (ex: "ventilateur_plafond"). **Par défaut le LLM envoie "ventilateur_plafond"** pour les requêtes génériques.
+- `p_style`, `p_couleur_moteur`, `p_couleur_pales`, `p_matiere_pales` : tableaux text[] avec matching ANY
+- `p_pieces` : tableau text[] avec overlap (&&)
+- `p_marque` : ILIKE pour tolérance casse
+- Booléens : matching exact (pas de ILIKE sur "Oui/Non" comme en V1)
+- Prix : sur `effective_price` = COALESCE(prix_promo, prix_ttc)
+- Tri : `p_sort_column` = sales_desc (défaut), price_asc, price_desc. Similarité vectorielle toujours en tri secondaire.
+- Produits en rupture (stock=0) poussés en bas des résultats
+
+## LLM Enrichissement (V2)
+
+Pipeline dans `llm-enrichment/enrich_products.py` :
+1. Récupère les produits depuis PrestaShop API (production www)
+2. Enrichit chaque produit via GPT-4.1-mini (20 workers en parallèle)
+3. Génère l'embedding OpenAI (text-embedding-3-small, 1536 dims)
+4. Insère dans `fan_boutique_products_v2` (UPSERT sur prestashop_id)
+5. Reconstruit l'index IVFFlat
+
+**Dernière exécution** : 2026-03-11 — 3779 produits enrichis, 0 erreurs, ~28 minutes.
+Lancer : `cd llm-enrichment && PYTHONUNBUFFERED=1 ../prestashop-catalog-sync/venv/bin/python enrich_products.py`
+
+## Prompt LLM Parser — Règles clés (v6)
+
+Fichier source : `prompts/llm-parser-v6-v2db.md`
+
+- **Type produit par défaut** : "ventilateur" sans précision → `p_type_produit: "ventilateur_plafond"`. Seuls les types explicites (table, mural, etc.) utilisent un autre type.
+- **Anti sur-filtrage** : les requêtes courtes/vagues ne doivent pas activer trop de filtres.
+- **Tolérance diamètre ±5cm** : "130 cm" → `p_diametre_min=125, p_diametre_max=135`.
+- **Destratificateur synonymes** : "réversible", "marche arrière", "sens inverse" → `p_destratificateur: true`.
+- **Promo** : "en promotion", "soldé" → `p_promo_only: true` + tri `price_asc`.
+- **Couleur ambiguë** : "noir" sans contexte → `p_couleur_moteur` UNIQUEMENT (pas p_couleur_pales).
+- **Valeurs normalisées** : tout en minuscules avec underscores (ventilateur_plafond, nickel_brosse, chambre_enfant).
+- **36 noms de champs stricts** listés en fin de prompt.
+
+## Outils de test
+
+- `test-llm-parser.mjs` : test direct du prompt GPT-4.1-mini. Lit `prompts/llm-parser-v6-v2db.md`. Usage : `node test-llm-parser.mjs` (batterie complète) ou `node test-llm-parser.mjs "requête"` (test unitaire).
 
 ## Development
 
@@ -138,8 +185,6 @@ new FanBoutiqueSearchWidget('#search-input', {
   placeholderExamples: [        // Typewriter examples (mix néophyte + expert)
     "Je cherche un ventilateur pour ma chambre",
     "Grand ventilateur noir moderne avec lumière",
-    "Un ventilateur qui ne fait pas de bruit",
-    "Ventilateur DC blanc avec télécommande",
     // ... 10 exemples au total
   ]
 });
@@ -147,10 +192,10 @@ new FanBoutiqueSearchWidget('#search-input', {
 
 ## Format de réponse n8n → Widget
 
-Le node n8n "Recover all values for frontend" formate les données pour le widget :
 ```json
 {
   "results": [{
+    "id": 3682,
     "titre": "Nom du produit",
     "prix": 199.00,
     "prix_promo": 149.00,
@@ -158,17 +203,17 @@ Le node n8n "Recover all values for frontend" formate les données pour le widge
     "image": "https://...",
     "url": "https://...",
     "description": "Extrait de 120 caractères...",
-    "score_similarite": "85%",
+    "score_similarite": "57%",
     "details": {
-      "style": "Moderne",
-      "couleur_moteur": "Blanc",
-      "couleur_pales": "Bois",
-      "type_moteur": "DC",
+      "style": "design",
+      "couleur_moteur": "noir",
+      "couleur_pales": "marron",
+      "type_moteur": "dc",
       "silence": "Oui",
       "diametre": "132 cm",
-      "nombre_pales": "5",
+      "nombre_pales": "3",
       "telecommande": "Oui",
-      "garantie": "25 ans"
+      "garantie": "10 ans"
     }
   }]
 }
@@ -183,13 +228,19 @@ Text color: `#1a2a3a` (dark blue)
 
 La fonction serverless supporte les patterns wildcard dans `FB_ALLOWED_ORIGINS`.
 Exemple : `https://*.ventilateurs-plafond.com` autorise tous les sous-domaines.
-Logique implémentée dans [search.mjs](netlify/functions/search.mjs) (lignes 43-68).
+
+## Archive V1
+
+L'ancien code V1 est dans `archive/` (gitignored) :
+- `archive/v1-vectorisation/prestashop-catalog-sync/` : ancien script de vectorisation (JSONB metadata)
+- `archive/v1-prompts/` : prompts LLM v4 et v5
+- `archive/test-filters.mjs` : ancien test end-to-end V1
 
 ## Liens avec France Minéraux
 
 Ce projet est dérivé du moteur de recherche France Minéraux (`france-mineraux-search-engine`).
 Différences principales :
 - Base Supabase séparée (`fan_boutique_*` au lieu de `france_mineraux_*`)
-- Métadonnées JSONB adaptées aux ventilateurs (style, moteur, pales, silence, wifi, etc.)
+- V2 utilise des colonnes typées (pas JSONB) pour les attributs produit
 - Prompt LLM adapté pour extraire des filtres ventilateur
 - Même infrastructure (Netlify + n8n + Supabase + OpenAI)
