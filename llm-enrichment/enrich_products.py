@@ -433,10 +433,81 @@ def main():
     parser.add_argument("--offset", type=int, default=0, help="Offset de départ (défaut: 0)")
     parser.add_argument("--all", action="store_true", help="Traiter tous les produits")
     parser.add_argument("--db", action="store_true", help="Insérer dans Supabase (sinon JSON local)")
+    parser.add_argument("--insert-only", type=str, metavar="JSON_FILE",
+                        help="Réinsérer depuis un JSON existant (skip enrichissement)")
     args = parser.parse_args()
 
     start_time = time.time()
     print("=== LLM Product Enrichment V2 ===\n")
+
+    # Mode insert-only : charger le JSON et insérer directement
+    if args.insert_only:
+        print(f"Mode INSERT-ONLY depuis {args.insert_only}\n")
+        with open(args.insert_only, encoding="utf-8") as f:
+            data = json.load(f)
+        print(f"   {len(data)} produits chargés")
+
+        # Vérifier que les embeddings sont présents
+        if not data[0].get("embedding"):
+            print("   ERREUR: le JSON ne contient pas d'embeddings. Utilisez un JSON généré avec la version récente.")
+            return
+
+        supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+        print("   Vidage de la table...", end=" ", flush=True)
+        supabase.rpc("fan_boutique_truncate_v2", {}).execute()
+        print("OK")
+
+        db_batch_size = 50
+        inserted = 0
+        for i in range(0, len(data), db_batch_size):
+            batch = data[i:i + db_batch_size]
+            rows = []
+            for item in batch:
+                attrs = item["attributs"]
+                rows.append({
+                    "prestashop_id": item["prestashop_id"],
+                    "nom": item["nom"],
+                    "prix_ttc": item["prix_ttc"],
+                    "prix_promo": item["prix_promo"],
+                    "en_stock": item["stock"] > 0,
+                    "stock": item["stock"],
+                    "image_url": item["image_url"],
+                    "product_url": item["product_url"],
+                    "description_courte": item["description_courte"],
+                    "description_longue": item.get("description_longue"),
+                    "total_sales": item["total_sales"],
+                    "embedding": item["embedding"],
+                    **{k: attrs.get(k) for k in [
+                        "type_produit", "sous_type", "marque", "gamme", "style", "pieces",
+                        "surface_min_m2", "surface_max_m2", "diametre_cm", "nombre_pales",
+                        "pales_reversibles_bicolores", "matiere_pales", "couleur_moteur",
+                        "couleur_pales", "type_moteur", "puissance_watts", "classe_energetique",
+                        "silencieux", "avec_lumiere", "type_source_lumineuse", "lumiere_dimmable",
+                        "kit_lumiere_option", "avec_telecommande", "telecommande_adaptable",
+                        "boitier_mural_adaptable", "wifi", "commande_vocale", "app_telephone",
+                        "reversible", "option_destratificateur", "surface_destrat_m2",
+                        "hauteur_max_destrat", "sonde_thermostatique", "usage_exterieur",
+                        "indice_protection", "plafond_en_pente", "distance_plafond_pales_cm",
+                        "prolongateur_dispo", "longueur_max_prolongateur", "garantie",
+                        "score_reparabilite", "est_accessoire", "est_ventilateur",
+                    ]},
+                })
+            try:
+                supabase.table(TABLE_V2).insert(rows).execute()
+                inserted += len(rows)
+                print(f"   Inséré {inserted}/{len(data)}...")
+            except Exception as e:
+                print(f"   ERREUR insertion batch {i}: {e}")
+
+        elapsed = time.time() - start_time
+        print(f"\n=== INSERT-ONLY terminé en {elapsed:.1f}s — {inserted} produits insérés ===")
+
+        # Rebuild IVFFlat index
+        print("\nReconstruction index IVFFlat...")
+        supabase.rpc("fan_boutique_rebuild_index_v2", {}).execute()
+        print("Index reconstruit.")
+        return
 
     # 1. Tables de référence
     print("1. Chargement des tables de référence...")
@@ -522,7 +593,7 @@ def main():
         print("OK")
     print(f"   {len(all_embeddings)} embeddings générés\n")
 
-    # 6. Sauvegarder en JSON local (toujours, pour backup)
+    # 6. Sauvegarder en JSON local (toujours, pour backup — inclut embeddings)
     output_data = []
     for (card, attrs), emb in zip(all_enriched, all_embeddings):
         output_data.append({
@@ -535,7 +606,9 @@ def main():
             "image_url": card["image_url"],
             "product_url": card["product_url"],
             "description_courte": card["description_courte"],
+            "description_longue": card["description_longue"],
             "attributs": attrs,
+            "embedding": emb,
         })
     output_file = OUTPUT_DIR / f"enriched_products_{len(output_data)}.json"
     with open(output_file, "w", encoding="utf-8") as f:
@@ -547,9 +620,9 @@ def main():
         print("7. Insertion dans Supabase (fan_boutique_products_v2)...")
         supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
-        # Vider la table d'abord (full refresh)
+        # Vider la table d'abord (full refresh) — TRUNCATE via RPC car DELETE timeout
         print("   Vidage de la table...", end=" ", flush=True)
-        supabase.table(TABLE_V2).delete().neq("id", 0).execute()
+        supabase.rpc("fan_boutique_truncate_v2", {}).execute()
         print("OK")
 
         # Insérer par batch de 50
