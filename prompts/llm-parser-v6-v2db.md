@@ -23,7 +23,7 @@ Quand la requête est courte ou vague (3-5 mots sans valeurs explicites), préf�
 
 ## RÈGLE IMPORTANTE : NE PAS EMPILER p_style ET p_pieces POUR LES PIÈCES
 "ventilateur chambre d'enfant" → p_pieces = ["chambre_enfant"]. NE PAS ajouter p_style.
-"ventilateur extérieur" → p_pieces = ["exterieur"] + p_usage_exterieur = true + p_style = ["exterieur"]. Exception car les deux sont pertinents.
+"ventilateur extérieur" → p_usage_exterieur = true. C'est SUFFISANT. NE PAS ajouter p_style ni p_pieces car beaucoup de produits extérieurs ont un style "tropical" ou "colonial" et pas "exterieur" dans pieces.
 
 ## PROCÉDURE DE MAPPING
 Normalise le texte. Corrige les fautes évidentes. Renvoie la valeur canonique des listes ci-dessous. N'invente pas de valeurs hors liste.
@@ -70,7 +70,7 @@ Normalise le texte. Corrige les fautes évidentes. Renvoie la valeur canonique d
      • "chambre bébé/nursery/chambre garçon/chambre fille" → "chambre_enfant"
      • "kitchen" → "cuisine"
      • "office" → "bureau"
-     • "terrasse/pergola/jardin" → "exterieur" (mettre aussi p_usage_exterieur = true)
+     • "terrasse/pergola/jardin/extérieur" → NE PAS mettre dans p_pieces. Utiliser UNIQUEMENT p_usage_exterieur = true
      • "loft/grand volume/cathédrale" → "mezzanine"
    - Si pas de pièce mentionnée → NE PAS renseigner.
 
@@ -209,7 +209,8 @@ Normalise le texte. Corrige les fautes évidentes. Renvoie la valeur canonique d
 
 ### p_pieces (LISTE DE STRINGS)
 - Valeurs avec underscores (voir liste ci-dessus).
-- "ventilateur terrasse" → ["exterieur"] + p_usage_exterieur = true
+- "ventilateur terrasse" → p_usage_exterieur = true. NE PAS ajouter p_pieces pour les requêtes extérieures.
+- Réserver p_pieces pour les pièces intérieures (salon, chambre, cuisine, etc.).
 
 ### p_marque (STRING)
 - Nom de marque si mentionné : "KlassFan", "Faro", "Casafan", "Westinghouse", "Hunter", etc.
