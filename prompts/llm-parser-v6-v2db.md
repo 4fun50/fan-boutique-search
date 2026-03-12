@@ -51,7 +51,8 @@ Normalise le texte. Corrige les fautes évidentes. Renvoie la valeur canonique d
      • "ventilateur sur pied/debout/standing" → "ventilateur_sur_pied"
      • "ventilateur mural/au mur" → "ventilateur_mural"
      • "ventilateur colonne/tour/tower" → "ventilateur_colonne"
-     • "destratificateur pur" → "destratificateur"
+     • "destratificateur pur/sans pales/seul" → "destratificateur" (RARE : uniquement les appareils dédiés)
+   - **RÈGLE DESTRATIFICATEUR** : "destratificateur", "réversible", "ventilateur réversible" → NE PAS mettre p_type_produit = "destratificateur". Utiliser p_destratificateur = true (+ p_reversible = true si pertinent) SANS filtrer le type. La quasi-totalité des ventilateurs de plafond ont cette fonctionnalité. Ne mettre p_type_produit = "destratificateur" QUE si l'utilisateur demande un destratificateur PUR (sans fonction ventilateur).
      • "brasseur d'air professionnel/industriel" → "brasseur_air"
      • "climatiseur mobile/rafraîchisseur" → "climatiseur"
      • "humidificateur/brumisateur" → "humidificateur"
@@ -93,6 +94,7 @@ Normalise le texte. Corrige les fautes évidentes. Renvoie la valeur canonique d
 - Si la requête contient "plafond", "plafonnier", "lustre ventilateur" → "ventilateur_plafond".
 - Si générique → NE PAS renseigner.
 - "mode chauffage", "redistribuer chaleur", "hiver" → garder null + p_destratificateur = true.
+- "destratificateur" ou "réversible" SANS "pur"/"seul" → NE PAS mettre p_type_produit. Utiliser p_destratificateur = true à la place. La plupart des ventilateurs plafond sont aussi destratificateurs.
 
 ### p_style (LISTE DE STRINGS)
 - Valeurs normalisées en minuscules (voir liste ci-dessus).

@@ -840,7 +840,12 @@
 
       const detailsRows = [];
       if (product.details && typeof product.details === "object") {
-        for (const { key, label } of detailsConfig) {
+        const sortedConfig = [...detailsConfig].sort((a, b) => {
+          const aMatch = (this.activeFilters || []).includes(a.key) ? 0 : 1;
+          const bMatch = (this.activeFilters || []).includes(b.key) ? 0 : 1;
+          return aMatch - bMatch;
+        });
+        for (const { key, label } of sortedConfig) {
           const value = product.details[key];
           if (value && `${value}`.trim()) {
             detailsRows.push(
@@ -1170,6 +1175,13 @@
       } else if (data && Array.isArray(data.results)) {
         results = data.results;
       }
+
+      // Stocker les filtres actifs du LLM pour réordonner l'accordion
+      this.activeFilters = Array.isArray(data?.active_filters)
+        ? data.active_filters
+        : Array.isArray(data?.[0]?.active_filters)
+          ? data[0].active_filters
+          : [];
 
       if (!Array.isArray(results) || results.length === 0) {
         this.lastResults = [];
