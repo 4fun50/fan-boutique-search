@@ -556,15 +556,11 @@
           e.preventDefault();
           e.stopPropagation();
 
-          const accordion = toggle.closest(".fm-product-accordion");
-          const panel = accordion?.querySelector(".fm-product-accordion-panel");
-          if (!accordion || !panel) return;
-
-          const isExpanded = accordion.classList.toggle(
-            "fm-product-accordion--open"
-          );
-          toggle.setAttribute("aria-expanded", String(isExpanded));
-          panel.hidden = !isExpanded;
+          const card = toggle.closest(".fm-product-result");
+          if (!card) return;
+          const idx = parseInt(card.dataset.productIndex, 10);
+          const product = this.lastResults[idx];
+          if (product) this.showProductModal(product);
         });
 
         this.resultsContainer.addEventListener("keydown", (e) => {
@@ -809,7 +805,7 @@
       this.resultsContainer.scrollTop = 0;
     }
 
-    getProductHTML(product) {
+    getProductHTML(product, index = 0) {
       const productName = product.titre || product.nom || product.name || "";
 
       const escapeHTML = (value) => {
@@ -826,59 +822,15 @@
         descriptionHTML += `<div class="fm-product-attribute">${escapeHTML(product.description)}</div>`;
       }
 
-      const detailsConfig = [
-        { key: "style", label: "Style" },
-        { key: "couleur_moteur", label: "Couleur moteur" },
-        { key: "couleur_pales", label: "Couleur pales" },
-        { key: "type_moteur", label: "Moteur" },
-        { key: "silence", label: "Silencieux" },
-        { key: "diametre", label: "Diamètre" },
-        { key: "nombre_pales", label: "Pales" },
-        { key: "telecommande", label: "Télécommande" },
-        { key: "wifi", label: "Wifi", onlyIfActive: true },
-        { key: "reversible", label: "Réversible", onlyIfActive: true },
-        { key: "lumiere", label: "Lumière", onlyIfActive: true },
-        { key: "usage_exterieur", label: "Usage extérieur", onlyIfActive: true },
-        { key: "commande_vocale", label: "Commande vocale", onlyIfActive: true },
-        { key: "matiere_pales", label: "Matière pales", onlyIfActive: true },
-        { key: "garantie", label: "Garantie" },
-      ];
-
-      const detailsRows = [];
-      if (product.details && typeof product.details === "object") {
-        const sortedConfig = [...detailsConfig].sort((a, b) => {
-          const aMatch = (this.activeFilters || []).includes(a.key) ? 0 : 1;
-          const bMatch = (this.activeFilters || []).includes(b.key) ? 0 : 1;
-          return aMatch - bMatch;
-        });
-        const af = this.activeFilters || [];
-        for (const { key, label, onlyIfActive } of sortedConfig) {
-          if (onlyIfActive && !af.includes(key)) continue;
-          const value = product.details[key];
-          if (value && `${value}`.trim()) {
-            detailsRows.push(
-              `<div class="fm-product-detail-row"><span class="fm-product-detail-label">${label}</span><span class="fm-product-detail-value">${escapeHTML(value)}</span></div>`
-            );
-          }
-        }
-      }
-
-      const accordionHTML =
-        detailsRows.length > 0
-          ? `
+      const accordionHTML = `
             <div class="fm-product-accordion">
               <div
                 class="fm-product-accordion-toggle"
                 role="button"
                 tabindex="0"
-                aria-expanded="false"
               >Voir les détails</div>
-              <div class="fm-product-accordion-panel" hidden>
-                ${detailsRows.join("")}
-              </div>
             </div>
-          `
-          : "";
+          `;
 
       let starsHTML = "";
       const reviewsCountCandidate =
@@ -1074,7 +1026,7 @@
       const outOfStockClass = isOutOfStock ? " fm-product-result--out-of-stock" : "";
 
       return `
-        <a href="${product.url}" class="fm-product-result${outOfStockClass}">
+        <a href="${product.url}" class="fm-product-result${outOfStockClass}" data-product-index="${index}">
           <div class="fm-product-image-wrapper">
             <img src="${product.image}" alt="${productName}" class="fm-product-image"
               onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'">
@@ -1092,6 +1044,154 @@
           </div>
         </a>
       `;
+    }
+
+    showProductModal(product) {
+      this.closeProductModal();
+
+      const escapeHTML = (value) => {
+        return `${value ?? ""}`
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      };
+
+      const productName = product.titre || product.nom || product.name || "";
+
+      // Tous les attributs — dans la modale on affiche tout
+      const allDetailsConfig = [
+        { key: "style", label: "Style" },
+        { key: "couleur_moteur", label: "Couleur moteur" },
+        { key: "couleur_pales", label: "Couleur pales" },
+        { key: "type_moteur", label: "Moteur" },
+        { key: "silence", label: "Silencieux" },
+        { key: "diametre", label: "Diamètre" },
+        { key: "nombre_pales", label: "Pales" },
+        { key: "telecommande", label: "Télécommande" },
+        { key: "wifi", label: "Wifi" },
+        { key: "reversible", label: "Réversible" },
+        { key: "lumiere", label: "Lumière" },
+        { key: "usage_exterieur", label: "Usage extérieur" },
+        { key: "commande_vocale", label: "Commande vocale" },
+        { key: "matiere_pales", label: "Matière pales" },
+        { key: "garantie", label: "Garantie" },
+      ];
+
+      // Tri : filtres actifs en premier
+      const af = this.activeFilters || [];
+      const sortedConfig = [...allDetailsConfig].sort((a, b) => {
+        const aMatch = af.includes(a.key) ? 0 : 1;
+        const bMatch = af.includes(b.key) ? 0 : 1;
+        return aMatch - bMatch;
+      });
+
+      let detailsHTML = "";
+      if (product.details && typeof product.details === "object") {
+        const rows = [];
+        for (const { key, label } of sortedConfig) {
+          const value = product.details[key];
+          if (value && `${value}`.trim()) {
+            const isHighlighted = af.includes(key);
+            rows.push(
+              `<div class="fm-modal-detail-row${isHighlighted ? " fm-modal-detail-row--highlighted" : ""}"><span class="fm-modal-detail-label">${label}</span><span class="fm-modal-detail-value">${escapeHTML(value)}</span></div>`
+            );
+          }
+        }
+        if (rows.length > 0) {
+          detailsHTML = `<div class="fm-modal-details">${rows.join("")}</div>`;
+        }
+      }
+
+      const description = product.description
+        ? `<div class="fm-modal-description">${escapeHTML(product.description)}</div>`
+        : "";
+
+      // Prix
+      const parsePrice = (raw) => {
+        if (raw === null || raw === undefined) return null;
+        if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+        const cleaned = `${raw}`.replace(/\s/g, "").replace(/[^\d.,]/g, "");
+        if (!cleaned) return null;
+        const normalized = cleaned.replace(",", ".");
+        const parsed = Number.parseFloat(normalized);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+
+      const origPrice = parsePrice(product.prix || product.price);
+      const promoPrice = parsePrice(product.prix_promo || product.prixPromo);
+      const hasPromo = origPrice && promoPrice && promoPrice < origPrice;
+
+      let priceHTML = "";
+      if (hasPromo) {
+        const percent = Math.round((1 - promoPrice / origPrice) * 100);
+        priceHTML = `
+          <div class="fm-modal-prices">
+            <span class="fm-modal-price--original">${origPrice.toFixed(2)} €</span>
+            <span class="fm-modal-price--promo">${promoPrice.toFixed(2)} €</span>
+            ${percent > 0 ? `<span class="fm-modal-discount-badge">-${percent}%</span>` : ""}
+          </div>`;
+      } else if (origPrice) {
+        priceHTML = `<div class="fm-modal-prices"><span class="fm-modal-price">${origPrice.toFixed(2)} €</span></div>`;
+      }
+
+      const stockHTML = product.en_stock === false
+        ? `<div class="fm-modal-stock fm-modal-stock--out">Rupture de stock</div>`
+        : `<div class="fm-modal-stock fm-modal-stock--in">En stock</div>`;
+
+      const overlay = document.createElement("div");
+      overlay.className = "fm-modal-overlay";
+      overlay.innerHTML = `
+        <div class="fm-modal-content">
+          <button type="button" class="fm-modal-close" aria-label="Fermer">&times;</button>
+          <div class="fm-modal-body">
+            <div class="fm-modal-image-col">
+              <img src="${product.image}" alt="${escapeHTML(productName)}" class="fm-modal-image"
+                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'">
+            </div>
+            <div class="fm-modal-info-col">
+              <h2 class="fm-modal-title">${escapeHTML(productName)}</h2>
+              ${description}
+              ${priceHTML}
+              ${stockHTML}
+              ${detailsHTML}
+              <a href="${product.url}" class="fm-modal-cta" target="_blank" rel="noopener">Voir sur le site</a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+      document.body.style.overflow = "hidden";
+
+      // Fermer au clic sur l'overlay (pas le contenu)
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) this.closeProductModal();
+      });
+      overlay.querySelector(".fm-modal-close").addEventListener("click", () => {
+        this.closeProductModal();
+      });
+
+      // Fermer avec Escape
+      this._modalEscHandler = (e) => {
+        if (e.key === "Escape") this.closeProductModal();
+      };
+      document.addEventListener("keydown", this._modalEscHandler);
+
+      this.setSearchUsedCookie();
+    }
+
+    closeProductModal() {
+      const overlay = document.querySelector(".fm-modal-overlay");
+      if (overlay) {
+        overlay.remove();
+        document.body.style.overflow = "";
+      }
+      if (this._modalEscHandler) {
+        document.removeEventListener("keydown", this._modalEscHandler);
+        this._modalEscHandler = null;
+      }
     }
 
     attachProductClickTracking() {
@@ -1151,7 +1251,7 @@
       const toAdd = this.lastResults.slice(prev, next);
       wrapper.insertAdjacentHTML(
         "beforeend",
-        toAdd.map((p) => this.getProductHTML(p)).join("")
+        toAdd.map((p, i) => this.getProductHTML(p, prev + i)).join("")
       );
 
       this.visibleResultsCount = next;
@@ -1225,7 +1325,7 @@
                     } produit${this.visibleResultsCount > 1 ? "s" : ""}</div>
                 </div>
                 <div class="fm-results-wrapper">
-                ${visibleResults.map((p) => this.getProductHTML(p)).join("")}
+                ${visibleResults.map((p, i) => this.getProductHTML(p, i)).join("")}
                 </div>
                 ${
                   this.lastResults.length > this.visibleResultsCount
