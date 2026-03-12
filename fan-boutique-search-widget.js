@@ -835,6 +835,12 @@
         { key: "diametre", label: "Diamètre" },
         { key: "nombre_pales", label: "Pales" },
         { key: "telecommande", label: "Télécommande" },
+        { key: "wifi", label: "Wifi", onlyIfActive: true },
+        { key: "reversible", label: "Réversible", onlyIfActive: true },
+        { key: "lumiere", label: "Lumière", onlyIfActive: true },
+        { key: "usage_exterieur", label: "Usage extérieur", onlyIfActive: true },
+        { key: "commande_vocale", label: "Commande vocale", onlyIfActive: true },
+        { key: "matiere_pales", label: "Matière pales", onlyIfActive: true },
         { key: "garantie", label: "Garantie" },
       ];
 
@@ -845,7 +851,9 @@
           const bMatch = (this.activeFilters || []).includes(b.key) ? 0 : 1;
           return aMatch - bMatch;
         });
-        for (const { key, label } of sortedConfig) {
+        const af = this.activeFilters || [];
+        for (const { key, label, onlyIfActive } of sortedConfig) {
+          if (onlyIfActive && !af.includes(key)) continue;
           const value = product.details[key];
           if (value && `${value}`.trim()) {
             detailsRows.push(
