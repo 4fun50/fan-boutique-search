@@ -119,7 +119,7 @@ Pipeline dans `llm-enrichment/enrich_products.py` :
 5. Reconstruit l'index IVFFlat
 
 **Dernière exécution** : 2026-03-11 — 3779 produits enrichis, 0 erreurs, ~28 minutes.
-Lancer : `cd llm-enrichment && PYTHONUNBUFFERED=1 ../prestashop-catalog-sync/venv/bin/python enrich_products.py`
+Lancer : `cd llm-enrichment && PYTHONUNBUFFERED=1 ../archive/v1-vectorisation/prestashop-catalog-sync/venv/bin/python enrich_products.py`
 
 ## Prompt LLM Parser — Règles clés (v6)
 

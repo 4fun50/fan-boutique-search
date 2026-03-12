@@ -45,56 +45,93 @@ try {
 
 // --- Requêtes de test ---
 const TEST_QUERIES = [
-  // Couleurs + filtres combinés
-  "ventilateur noir 5 pales",
-  "ventilateur blanc silencieux avec lumière",
-  "ventilateur DC noir moderne",
-  // Extérieur / IP
-  "ventilateur extérieur IP44",
-  // Prix
+  // ═══════════════════════════════════════════════════════
+  // RECHERCHES GOOGLE TYPIQUES (requêtes réelles utilisateurs)
+  // ═══════════════════════════════════════════════════════
+
+  // --- Top recherches génériques (doit → ventilateur_plafond) ---
+  "ventilateur plafond",
+  "ventilateur de plafond silencieux",
+  "ventilateur plafond avec lumière",
+  "ventilateur plafond télécommande",
+  "ventilateur plafond pas cher",
+  "ventilateur plafond design",
+  "ventilateur plafond reversible",
+
+  // --- Recherches SANS le mot "plafond" (doit QUAND MÊME → ventilateur_plafond) ---
+  "ventilateur silencieux",
+  "ventilateur blanc",
+  "ventilateur noir moderne",
+  "ventilateur avec lumière",
+  "ventilateur pas cher",
+  "ventilateur télécommande",
+
+  // --- Pièces (recherches fréquentes) ---
+  "ventilateur pour chambre",
+  "ventilateur pour salon",
+  "ventilateur pour chambre d'enfant",
+  "ventilateur pour terrasse",
+  "ventilateur extérieur",
+  "ventilateur pour grand salon",
+
+  // --- Prix (comportement acheteur) ---
   "ventilateur moins de 100 euros",
-  "ventilateur réversible noir moderne entre 200 et 400 euros",
-  // Promo
+  "ventilateur moins de 200 euros",
+  "ventilateur haut de gamme",
   "ventilateur en promotion",
-  // Style tropical
-  "grand ventilateur tropique avec télécommande",
-  // Catégorie
-  "accessoires ventilateur",
-  "prolongateur blanc 60cm",
-  // Diamètre
-  "ventilateur 130 cm",
-  // Tri
-  "meilleures ventes",
-  // Destratificateur
-  "déstratificateur pour pièce 50m2",
-  // Enfants
-  "ventilateur moins de 100 euros pour chambre enfant",
-  // Matière pales
-  "ventilateur pales aluminium",
-  // Surface (m²)
-  "ventilateur noir 30 m²",
-  "ventilateur pour petite chambre",
-  "ventilateur pour grand salon open space",
-  // Type produit
-  "ventilateur de table silencieux",
-  "ventilateur sur pied noir",
-  "ventilateur mural extérieur",
+  "ventilateur réversible noir entre 200 et 400 euros",
+
+  // --- Marques (recherches brandées) ---
+  "ventilateur KlassFan",
+  "ventilateur Faro",
+  "ventilateur Hunter",
+  "ventilateur Westinghouse",
+
+  // --- Styles ---
+  "ventilateur industriel",
+  "ventilateur tropical",
+  "ventilateur moderne blanc",
+  "ventilateur rustique bois",
+  "ventilateur design noir",
+
+  // --- Technique / specs ---
+  "ventilateur DC",
+  "ventilateur 132 cm",
+  "ventilateur 5 pales",
+  "ventilateur plafond bas",
+  "ventilateur plafond en pente",
+  "ventilateur sans lumière",
+
+  // --- Destratificateur / hiver ---
+  "destratificateur",
+  "ventilateur réversible été hiver",
+  "redistribuer la chaleur",
+
+  // --- Types produit AUTRES que plafond (doivent PAS être ventilateur_plafond) ---
+  "ventilateur de table",
+  "ventilateur sur pied",
+  "ventilateur mural",
+  "ventilateur colonne silencieux",
   "climatiseur mobile",
   "humidificateur d'air",
-  // Pièces
-  "ventilateur pour chambre d'enfant",
-  "ventilateur pour salon et cuisine",
-  "ventilateur pour terrasse",
-  "ventilateur pour mezzanine",
-  // Combinés (multi-filtres)
-  "ventilateur blanc silencieux pour chambre 20 m²",
-  "ventilateur de table pour cuisine moins de 50 euros",
-  // Cas limites
-  "ventilateur silencieux pas cher",
-  "ventilateur KlassFan",
-  "ventilateur sans lumière",
-  "ventilateur plafond en pente",
-  "ventilateur dimmable connecté",
+
+  // --- Accessoires ---
+  "télécommande ventilateur",
+  "prolongateur ventilateur 60cm",
+  "accessoire ventilateur",
+
+  // --- Combinées (multi-critères réalistes) ---
+  "ventilateur blanc silencieux pour chambre 20m²",
+  "grand ventilateur noir DC avec lumière pour salon",
+  "ventilateur extérieur IP44 avec télécommande",
+  "petit ventilateur pour bureau pas cher",
+
+  // --- Recherches néophytes / langage naturel ---
+  "je cherche un ventilateur qui ne fait pas de bruit",
+  "ventilateur pour plafond incliné",
+  "un truc pour brasser l'air dans le salon",
+  "ventilateur connecté alexa",
+  "ventilateur avec variateur de lumière",
 ];
 
 // --- Appeler GPT-4.1-mini ---

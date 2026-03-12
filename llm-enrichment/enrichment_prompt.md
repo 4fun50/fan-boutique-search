@@ -83,8 +83,30 @@ Tu es un expert en ventilateurs de plafond et équipements de ventilation. On te
 - Pour chauffage : `"seche_serviettes"`, `"porte_serviettes"`, `"radiateur"`, `"autre_chauffage"`
 - Pour les autres types : `null`
 
-## marque (texte libre ou null)
-Extraire depuis le nom du produit, la description, ou les caractéristiques. Exemples courants : "Faro", "KlassFan", "Casafan", "Westinghouse", "Fantasia", "Beacon", "Sulion", "Hunter", "Purline", "LBA HOME", "Pepeo", etc.
+## marque (texte EXACT ou null)
+Utilise UNIQUEMENT les noms de marque normalisés ci-dessous. Si la marque du produit correspond à une de ces valeurs (même avec une casse différente), utilise la version normalisée EXACTE.
+
+Marques autorisées :
+- `"KlassFan"` — aussi écrit "Klassfan", "KLASSFAN", "Klass Fan"
+- `"Casafan"` — aussi écrit "CasaFan", "CASAFAN", "Casa Fan"
+- `"LBA Home"` — aussi écrit "LBA HOME", "Lba Home", "LBA", "Lba"
+- `"Faro"` — aussi écrit "FARO"
+- `"Hunter"` — aussi écrit "HUNTER"
+- `"Fanimation"` — aussi écrit "FANIMATION"
+- `"Modern Fan Company"` — aussi écrit "Modern Fan", "Modern Fan Compagny", "The Modern Fan Company", "The Modern Fan Compagny"
+- `"Purline"` — aussi écrit "PURLINE"
+- `"Pepeo"` — aussi écrit "Pepéo", "PEPEO"
+- `"Modulo"` — gamme KlassFan, mais marque = "Modulo" si c'est la marque principale affichée
+- `"Orieme"` — aussi écrit "ORIEME"
+- `"Vortice"`
+- `"Westinghouse"`
+- `"Fantasia"`
+- `"Beacon"`
+- `"Sulion"`
+- `"EcoCool"`
+- `"Vento"`
+
+Si la marque n'est pas dans cette liste, écris-la en casse normale (première lettre majuscule). Si aucune marque identifiable, mets `null`.
 
 ## gamme (texte libre ou null)
 Nom de la gamme/modèle/série. Ex: "Lantau", "Modulo", "Eco Genuino", "Royal", "Moverick", etc.

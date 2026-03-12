@@ -28,9 +28,9 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from supabase import create_client
 
-# Charger le .env du dossier parent (prestashop-catalog-sync)
-env_path = Path(__file__).parent.parent / "prestashop-catalog-sync" / ".env"
-load_dotenv(env_path)
+# Charger le .env (racine projet + ancien emplacement en fallback)
+load_dotenv(Path(__file__).parent.parent / ".env")
+load_dotenv(Path(__file__).parent.parent / "archive" / "v1-vectorisation" / "prestashop-catalog-sync" / ".env")
 
 # ── Config ──────────────────────────────────────────────
 PS_URL = "https://www.ventilateurs-plafond.com/api"
@@ -183,8 +183,8 @@ def load_stocks():
 
 
 def load_sales():
-    """Charge les ventes par produit sur les 2 dernières années."""
-    cutoff = (datetime.now() - timedelta(days=730)).strftime("%Y-%m-%d")
+    """Charge les ventes par produit sur les 4 dernières années."""
+    cutoff = (datetime.now() - timedelta(days=1460)).strftime("%Y-%m-%d")
     valid_states = {2, 3, 4, 5, 9, 11, 42, 43, 51, 52}
 
     valid_order_ids = set()

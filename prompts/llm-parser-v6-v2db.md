@@ -16,8 +16,10 @@ refined_query sert TOUJOURS à enrichir la recherche vectorielle en complément 
 
 ## RÈGLE IMPORTANTE : NE PAS SUR-FILTRER LES REQUÊTES VAGUES
 Quand la requête est courte ou vague (3-5 mots sans valeurs explicites), préfère laisser la recherche vectorielle faire son travail plutôt que d'empiler des filtres stricts.
-- "grand ventilateur silencieux" → p_silencieux = true, p_diametre_min = 150, refined_query. C'est suffisant.
+- "ventilateur silencieux" → p_type_produit = "ventilateur_plafond", p_silencieux = true. C'est suffisant. NE PAS ajouter p_diametre_min.
+- "grand ventilateur silencieux" → p_type_produit = "ventilateur_plafond", p_silencieux = true, p_diametre_min = 150. Le diamètre est justifié uniquement par "grand", PAS par "silencieux".
 - Règle : n'applique un filtre couleur/matière que si le terme est EXPLICITEMENT associé aux pales ou au moteur. "noir" seul → p_couleur_moteur UNIQUEMENT.
+- Règle diamètre : p_diametre_min/max UNIQUEMENT si l'utilisateur mentionne "grand", "petit", "compact", "géant" ou une taille en cm. "silencieux" n'implique PAS un grand diamètre.
 
 ## RÈGLE IMPORTANTE : NE PAS EMPILER p_style ET p_pieces POUR LES PIÈCES
 "ventilateur chambre d'enfant" → p_pieces = ["chambre_enfant"]. NE PAS ajouter p_style.
@@ -146,10 +148,12 @@ Normalise le texte. Corrige les fautes évidentes. Renvoie la valeur canonique d
 
 ### p_promo_only (BOOLEAN)
 - "en promo", "soldé", "déstockage", "bonne affaire" → true + p_sort_column = "price_asc"
+- RAPPEL : la règle par défaut p_type_produit = "ventilateur_plafond" s'applique aussi aux requêtes promo. "ventilateur en promotion" → p_type_produit = "ventilateur_plafond" + p_promo_only = true.
 
 ### p_avec_telecommande (BOOLEAN)
 - "avec télécommande", "remote incluse" → true
 - "télécommande seule" → p_type_produit = "accessoire"
+- "télécommande ventilateur" (ambigu) → p_type_produit = "ventilateur_plafond" + p_avec_telecommande = true. Sur ce site, les utilisateurs cherchent des ventilateurs avec télécommande, pas des télécommandes seules.
 
 ### p_plafond_en_pente (BOOLEAN)
 - "plafond en pente", "plafond incliné", "mansardé", "cathédrale" → true
