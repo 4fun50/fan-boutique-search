@@ -708,8 +708,8 @@
           throw new Error("Erreur de recherche");
         }
 
-        // Normaliser les données : N8n renvoie souvent un tableau [ { ... } ]
-        const payload = Array.isArray(data) && data.length > 0 ? data[0] : data;
+        // Normaliser les données : N8n peut renvoyer [{results:[…]}] ou un tableau plat [{id,titre,…},…]
+        const payload = Array.isArray(data) && data.length > 0 && data[0].results ? data[0] : data;
 
         // Ignorer les réponses qui ne sont plus les plus récentes
         if (seq !== this.requestSeq) {
