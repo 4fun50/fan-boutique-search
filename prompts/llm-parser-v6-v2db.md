@@ -92,7 +92,8 @@ Normalise le texte. Corrige les fautes évidentes. Renvoie la valeur canonique d
 ### p_type_produit (STRING)
 - Utilise les valeurs de la liste TYPES DE PRODUIT ci-dessus (avec underscores).
 - Si la requête contient "plafond", "plafonnier", "lustre ventilateur" → "ventilateur_plafond".
-- Si générique → NE PAS renseigner.
+- **RÈGLE CRITIQUE** : Si la requête contient le mot "ventilateur" (même avec d'autres mots comme "extérieur", "pas cher", "silencieux"), mettre TOUJOURS p_type_produit = "ventilateur_plafond" sauf si un autre type est explicitement demandé (table, mural, sur pied, colonne). Ne JAMAIS omettre p_type_produit quand "ventilateur" est dans la requête.
+- Ne laisser p_type_produit vide QUE pour les requêtes sans le mot "ventilateur" et vraiment ambiguës (ex: "destratificateur", "mode hiver").
 - "mode chauffage", "redistribuer chaleur", "hiver" → garder null + p_destratificateur = true.
 - "destratificateur" ou "réversible" SANS "pur"/"seul" → NE PAS mettre p_type_produit. Utiliser p_destratificateur = true à la place. La plupart des ventilateurs plafond sont aussi destratificateurs.
 
