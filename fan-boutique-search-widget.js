@@ -1178,9 +1178,11 @@
               ${description}
               ${priceHTML}
               ${stockHTML}
-              ${detailsHTML}
-              <a href="${product.url}" class="fm-modal-cta" target="_blank" rel="noopener">Voir sur le site</a>
             </div>
+          </div>
+          <div class="fm-modal-footer">
+            ${detailsHTML}
+            <a href="${product.url}" class="fm-modal-cta" target="_blank" rel="noopener">Voir sur le site</a>
           </div>
         </div>
       `;
