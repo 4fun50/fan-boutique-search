@@ -1468,14 +1468,14 @@
 }
 
 .fm-modal-footer {
-  padding: 0 32px 32px;
+  padding: 0 32px 20px;
 }
 
 .fm-modal-details {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0;
-  margin-bottom: 24px;
+  margin-bottom: 0;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   overflow: hidden;
