@@ -1531,6 +1531,31 @@
   background: #e5680d;
 }
 
+.fm-modal-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fm-modal-cart-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  background: #1a2a3a;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.fm-modal-cart-btn:hover {
+  background: #2c3e50;
+}
+
 /* ─── Modale responsive mobile ─── */
 
 @media (max-width: 768px) {
@@ -1588,7 +1613,12 @@
     border-bottom: none;
   }
 
-  .fm-modal-cta {
+  .fm-modal-actions {
+    flex-direction: column;
+  }
+
+  .fm-modal-cta,
+  .fm-modal-cart-btn {
     width: 100%;
     text-align: center;
   }

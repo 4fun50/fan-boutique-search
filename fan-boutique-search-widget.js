@@ -1163,6 +1163,15 @@
         ? `<div class="fm-modal-stock fm-modal-stock--out">Rupture de stock</div>`
         : `<div class="fm-modal-stock fm-modal-stock--in">En stock</div>`;
 
+      // Extraire le prestashop_id depuis l'URL produit (format: /3620-nom-du-produit.html)
+      const psIdMatch = product.url ? product.url.match(/\/(\d+)-[^/]+\.html/) : null;
+      const cartURL = psIdMatch
+        ? `https://www.ventilateurs-plafond.com/panier?add=1&id_product=${psIdMatch[1]}&qty=1`
+        : null;
+      const cartBtnHTML = cartURL && product.en_stock !== false
+        ? `<a href="${cartURL}" class="fm-modal-cart-btn" target="_blank" rel="noopener">Ajouter au panier</a>`
+        : "";
+
       const overlay = document.createElement("div");
       overlay.className = "fm-modal-overlay";
       overlay.innerHTML = `
@@ -1178,7 +1187,10 @@
               ${description}
               ${priceHTML}
               ${stockHTML}
-              <a href="${product.url}" class="fm-modal-cta" target="_blank" rel="noopener">Voir sur le site</a>
+              <div class="fm-modal-actions">
+                <a href="${product.url}" class="fm-modal-cta" target="_blank" rel="noopener">Voir sur le site</a>
+                ${cartBtnHTML}
+              </div>
             </div>
           </div>
           <div class="fm-modal-footer">
