@@ -1169,7 +1169,7 @@
         ? `https://www.ventilateurs-plafond.com/panier?add=1&id_product=${psIdMatch[1]}&qty=1`
         : null;
       const cartBtnHTML = cartURL && product.en_stock !== false
-        ? `<a href="${cartURL}" class="fm-modal-cart-btn" target="_blank" rel="noopener">Ajouter au panier</a>`
+        ? `<a href="${cartURL}" class="fm-modal-cta" target="_blank" rel="noopener" data-cart-btn>Ajouter au panier</a>`
         : "";
 
       const overlay = document.createElement("div");
@@ -1188,8 +1188,8 @@
               ${priceHTML}
               ${stockHTML}
               <div class="fm-modal-actions">
-                <a href="${product.url}" class="fm-modal-cta" target="_blank" rel="noopener">Voir sur le site</a>
                 ${cartBtnHTML}
+                <a href="${product.url}" class="fm-modal-cta--secondary" target="_blank" rel="noopener">Voir sur le site</a>
               </div>
             </div>
           </div>
@@ -1209,6 +1209,20 @@
       overlay.querySelector(".fm-modal-close").addEventListener("click", () => {
         this.closeProductModal();
       });
+
+      // Comportement "Ajouter au panier" : feedback visuel après clic
+      const cartBtn = overlay.querySelector("[data-cart-btn]");
+      if (cartBtn) {
+        cartBtn.addEventListener("click", () => {
+          cartBtn.textContent = "Ajouté !";
+          cartBtn.classList.add("fm-modal-cta--confirmed");
+          setTimeout(() => {
+            cartBtn.textContent = "Voir le panier";
+            cartBtn.href = "https://www.ventilateurs-plafond.com/panier";
+            cartBtn.classList.remove("fm-modal-cta--confirmed");
+          }, 2000);
+        });
+      }
 
       // Fermer avec Escape
       this._modalEscHandler = (e) => {

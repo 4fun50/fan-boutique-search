@@ -1524,11 +1524,39 @@
   font-weight: 700;
   border-radius: 10px;
   text-decoration: none;
-  transition: background 0.15s;
+  transition: background 0.2s, color 0.2s;
 }
 
 .fm-modal-cta:hover {
   background: #e5680d;
+}
+
+.fm-modal-cta--confirmed {
+  background: #16a34a;
+}
+
+.fm-modal-cta--confirmed:hover {
+  background: #15803d;
+}
+
+.fm-modal-cta--secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  background: transparent;
+  color: #ff750e;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 2px solid #ff750e;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.fm-modal-cta--secondary:hover {
+  background: #ff750e;
+  color: #fff;
 }
 
 .fm-modal-actions {
@@ -1536,24 +1564,6 @@
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-}
-
-.fm-modal-cart-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 28px;
-  background: #1a2a3a;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: background 0.15s;
-}
-
-.fm-modal-cart-btn:hover {
-  background: #2c3e50;
 }
 
 /* ─── Modale responsive mobile ─── */
@@ -1618,7 +1628,7 @@
   }
 
   .fm-modal-cta,
-  .fm-modal-cart-btn {
+  .fm-modal-cta--secondary {
     width: 100%;
     text-align: center;
   }
