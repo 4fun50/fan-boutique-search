@@ -1216,6 +1216,9 @@
         cartBtn.addEventListener("click", () => {
           cartBtn.textContent = "Ajouté !";
           cartBtn.classList.add("fm-modal-cta--confirmed");
+          // Push GTM dataLayer : ajout panier depuis le widget
+          const idx = (this.lastResults || []).findIndex((p) => p && p.id === product.id);
+          this.pushDataLayerEvent("fb_search_add_to_cart", product, idx);
           setTimeout(() => {
             cartBtn.textContent = "Voir le panier";
             cartBtn.href = "https://www.ventilateurs-plafond.com/panier";
@@ -1231,6 +1234,10 @@
       document.addEventListener("keydown", this._modalEscHandler);
 
       this.setSearchUsedCookie();
+
+      // Push GTM dataLayer : ouverture modale = signal d'intérêt
+      const idx = (this.lastResults || []).findIndex((p) => p && p.id === product.id);
+      this.pushDataLayerEvent("fb_search_product_view", product, idx);
     }
 
     closeProductModal() {
@@ -1252,6 +1259,11 @@
       productLinks.forEach((link) => {
         link.addEventListener("click", () => {
           this.setSearchUsedCookie();
+          const idx = parseInt(link.dataset.productIndex, 10);
+          const product = this.lastResults && this.lastResults[idx];
+          if (product) {
+            this.pushDataLayerEvent("fb_search_product_click", product, idx);
+          }
         });
       });
     }
@@ -1283,6 +1295,33 @@
         localStorage.setItem("fb_search_timestamp", Date.now().toString());
       } catch (e) {
         console.warn("localStorage non disponible pour le tracking");
+      }
+    }
+
+    /**
+     * Pousse un événement dans le dataLayer GTM (créé à la volée si absent).
+     * Utilisé par GTM pour relayer vers les workflows n8n (alerte clic, conversion, etc.).
+     */
+    pushDataLayerEvent(eventName, product, index) {
+      try {
+        window.dataLayer = window.dataLayer || [];
+        const effectivePrice = product.prix_promo || product.prix || null;
+        window.dataLayer.push({
+          event: eventName,
+          fb_search: {
+            product_id: product.id || null,
+            product_name: product.titre || null,
+            product_price: effectivePrice,
+            product_position: typeof index === "number" ? index + 1 : null,
+            in_stock: product.en_stock !== false,
+            on_promo: !!product.prix_promo,
+            search_query: this.currentQuery || null,
+            search_filters: Array.isArray(this.activeFilters) ? this.activeFilters : [],
+            total_results: this.lastResults ? this.lastResults.length : 0,
+          },
+        });
+      } catch (e) {
+        // Silencieux : si dataLayer plante, on ne casse pas le widget
       }
     }
 
