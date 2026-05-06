@@ -4,8 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## En attente (dépendances externes)
 
-- **Avis clients** : En attente de la mise à jour du module avis clients par l'agence. Une fois disponibles via l'API PrestaShop, récupérer les avis et les intégrer comme nouveau champ dans le moteur de recherche (enrichissement + affichage widget).
+- **Avis clients** : En attente. L'agence (Algo Factory) doit installer/activer le module natif PrestaShop `productcomments`. Vérifié 2026-05-06 : les ressources `product_comments`, `product_comment_criterions`, `product_comment_usefulnesses` n'apparaissent pas dans la liste des permissions webservice → le module n'est pas enregistré. Une fois activé côté BO PrestaShop, ajouter une colonne `note_moyenne` + `nb_avis` dans Supabase et enrichir le widget.
 - **Bouton "Ajouter au panier"** : ✅ Implémenté. URL PrestaShop native `/panier?add=1&id_product={prestashop_id}&qty=1`. Le `prestashop_id` est extrait depuis l'URL produit via regex (`/(\d+)-[^/]+\.html/`). Bouton masqué si produit en rupture. Hiérarchie CTA : "Ajouter au panier" = primaire orange, "Voir sur le site" = secondaire outlined. Au clic : le bouton passe en vert "Ajouté !" pendant 2s puis devient "Voir le panier" (lien `/panier`). La modale reste ouverte.
+- **Recherche par référence produit** : ✅ Implémenté (2026-05-06). Colonne `reference TEXT` dans `fan_boutique_products_v2` (3812/3812 produits remplis), index GIN trigram (`pg_trgm`) pour recherche `ILIKE` rapide, paramètre `p_reference` ajouté à la RPC `fan_boutique_search_v2`, règle prioritaire de détection dans le LLM Parser (pattern alphanumérique avec chiffres + séparateur), nodes n8n `Build Supabase Payload` + `Recover all values for frontend` mis à jour. Validé end-to-end sur preprod (`te3_p8wi166` → 2 produits Tenerife matchés).
+- **Module PrestaShop `fanboutiquesearch`** : ✅ v1.0.1 installée sur preprod.ventilateurs-plafond.com. Hijack de l'autocomplete natif (module `ps_searchbar`), désactive jQuery UI Autocomplete, branche `FanBoutiqueSearchWidget` à la place. Désactivé sur tunnel d'achat (`/panier`, `/commande`) et réseau 2G. ⚠️ Vider le cache PrestaShop après chaque update (BO → Performance → Effacer le cache, sinon le bundle CCC garde l'ancien JS).
 
 ## Règles de travail
 
@@ -118,7 +120,7 @@ Proxies requests to n8n webhook with:
 Ce node formate la réponse Supabase pour le widget. Fonctionnement clé :
 
 1. **Lecture des filtres LLM** : récupère `$('LLM Parser').first().json.output[0].content[0].text` (objet ou string JSON)
-2. **Calcul `active_filters`** : via `FILTER_TO_DETAIL` mapping (26 entrées : `p_style` → `"style"`, `p_wifi` → `"wifi"`, etc.), identifie quels filtres le LLM a activés
+2. **Calcul `active_filters`** : via `FILTER_TO_DETAIL` mapping (27 entrées : `p_style` → `"style"`, `p_wifi` → `"wifi"`, `p_reference` → `"reference"`, etc.), identifie quels filtres le LLM a activés
 3. **Formatage produits** : mappe les colonnes Supabase vers le format frontend (38 champs `details`, surface combinée, pièces lisibles, score similarité)
 4. **Wrapping** : retourne `[{json: {results: [...], active_filters: [...]}}]` — un seul item n8n
 
@@ -199,6 +201,7 @@ Fichier source : `prompts/llm-parser-v6-v2db.md`
 Ce fichier est copié-collé directement dans le node LLM Parser de n8n (pas de lignes de commentaire en en-tête).
 
 - **Plus de `refined_query`** : le LLM ne renvoie que des filtres structurés (pas de recherche vectorielle).
+- **RÈGLE PRIORITAIRE — détection de référence produit** : placée tout en haut du prompt, court-circuite toutes les autres règles. Si la requête matche un pattern alphanumérique ≥ 5 chars avec chiffres ET séparateur (`_`, `-`, `.`, `/`) sans espace au milieu → seul `p_reference` est rempli (+ `p_sort_column`). Exemples : `KL_TE3_P8WI166_RINGCH`, `te3_p8wi166`, `FAB_213591328`. Le LLM ne remplit PAS `p_type_produit` dans ce cas (sinon ça filtrerait inutilement).
 - **Type produit par défaut** : "ventilateur" sans précision → `p_type_produit: "ventilateur_plafond"`. Seuls les types explicites (table, mural, etc.) utilisent un autre type.
 - **Anti sur-filtrage** : les requêtes courtes/vagues ne doivent pas activer trop de filtres.
 - **Tolérance diamètre ±5cm** : "130 cm" → `p_diametre_min=125, p_diametre_max=135`.
@@ -206,7 +209,7 @@ Ce fichier est copié-collé directement dans le node LLM Parser de n8n (pas de 
 - **Promo** : "en promotion", "soldé" → `p_promo_only: true` + tri `price_asc`.
 - **Couleur ambiguë** : "noir" sans contexte → `p_couleur_moteur` UNIQUEMENT (pas p_couleur_pales).
 - **Valeurs normalisées** : tout en minuscules avec underscores (ventilateur_plafond, nickel_brosse, chambre_enfant).
-- **36 noms de champs stricts** listés en fin de prompt.
+- **37 noms de champs stricts** listés en fin de prompt (ajout de `p_reference`).
 
 ## Outils de test
 
