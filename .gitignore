@@ -22,3 +22,9 @@ archive/
 
 # OS files
 .DS_Store
+
+# Playwright MCP (snapshots de session, non versionnés)
+.playwright-mcp/
+
+# Screenshots de debug/analyse (non versionnés)
+vp-*.png

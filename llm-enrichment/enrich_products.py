@@ -4,14 +4,16 @@ LLM Product Enrichment — Fan Boutique Search Engine (V2)
 Pipeline complet :
   1. Charge les produits depuis PrestaShop (+ stocks, promos, ventes)
   2. Envoie chaque fiche au LLM → attributs normalisés
-  3. Génère les embeddings OpenAI
-  4. Insère dans fan_boutique_products_v2 (Supabase)
+  3. Insère dans fan_boutique_products_v2 (Supabase)
 
 Usage :
     venv/bin/python enrich_products.py              # 10 produits (test, JSON local)
     venv/bin/python enrich_products.py --count 50   # 50 produits (test)
     venv/bin/python enrich_products.py --all         # tous les produits
     venv/bin/python enrich_products.py --all --db    # tous + insertion Supabase
+
+Mode rafraîchissement rapide (pas d'appel LLM, ~3 min, coût 0 €) :
+    venv/bin/python enrich_products.py --prices-only  # MAJ prix/promos/stocks/ventes uniquement
 """
 
 import json
@@ -40,8 +42,6 @@ LANG_ID = 1  # français
 
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 LLM_MODEL = "gpt-4.1-mini"
-EMBEDDING_MODEL = "text-embedding-3-small"
-EMBEDDING_BATCH_SIZE = 100
 
 TABLE_V2 = "fan_boutique_products_v2"
 
@@ -244,7 +244,17 @@ def load_all_products(limit=None, start_offset=0):
         batch = data.get("products", [])
         if not batch:
             break
-        all_products.extend(batch)
+        # Filtrer : uniquement les produits visibles sur le front-office
+        # visibility: "both" (catalogue + recherche) ou "catalog" ou "search"
+        # Exclure "none" (invisible) et les brouillons/copies
+        for p in batch:
+            visibility = p.get("visibility", "both")
+            name = get_lang(p.get("name", "")).strip().lower()
+            if visibility == "none":
+                continue
+            if name.startswith("copy of"):
+                continue
+            all_products.append(p)
         offset += batch_size
 
         if limit and len(all_products) >= limit:
@@ -294,9 +304,6 @@ def build_raw_product_card(raw, features_map, values_map, categories_map, sp_map
     link_rewrite = get_lang(raw.get("link_rewrite", ""))
     product_url = f"{PUBLIC_BASE}/{raw['id']}-{link_rewrite}.html" if link_rewrite else None
 
-    # Texte pour l'embedding
-    embedding_text = f"{name}\n\n{description_short}\n\n{description}"
-
     return {
         "prestashop_id": product_id,
         "nom": name,
@@ -310,7 +317,6 @@ def build_raw_product_card(raw, features_map, values_map, categories_map, sp_map
         "caracteristiques": features_raw,
         "image_url": image_url,
         "product_url": product_url,
-        "embedding_text": embedding_text,
     }
 
 
@@ -349,20 +355,9 @@ def enrich_single(card):
     return json.loads(raw_response)
 
 
-# ── Embeddings ──────────────────────────────────────────
-
-def generate_embeddings(texts):
-    """Génère les embeddings OpenAI pour une liste de textes."""
-    response = openai_client.embeddings.create(
-        model=EMBEDDING_MODEL,
-        input=texts,
-    )
-    return [item.embedding for item in response.data]
-
-
 # ── Insertion Supabase ──────────────────────────────────
 
-def build_db_row(card, attrs, embedding):
+def build_db_row(card, attrs):
     """Construit une ligne pour la table fan_boutique_products_v2."""
     return {
         "prestashop_id": card["prestashop_id"],
@@ -376,7 +371,6 @@ def build_db_row(card, attrs, embedding):
         "description_courte": card["description_courte"],
         "description_longue": card["description_longue"],
         "total_sales": card["total_sales"],
-        "embedding": embedding,
         # Attributs LLM — on mappe chaque champ
         "type_produit": attrs.get("type_produit"),
         "sous_type": attrs.get("sous_type"),
@@ -424,6 +418,91 @@ def build_db_row(card, attrs, embedding):
     }
 
 
+# ── Mode rafraîchissement rapide (sans LLM) ─────────────
+
+def prices_only_update():
+    """
+    Met à jour uniquement les colonnes prix/promos/stocks/ventes dans Supabase.
+    Skip complètement le LLM → coût 0 €, durée ~3 min au lieu de ~28 min.
+    Les attributs LLM (style, type_produit, etc.) sont conservés intacts.
+    """
+    start_time = time.time()
+    print("=== Refresh PRIX/STOCKS uniquement (sans LLM) ===\n")
+
+    # 1. Charger les données dynamiques depuis PrestaShop
+    print("1. Chargement promos, stocks, ventes...")
+    sp_map = load_specific_prices()
+    stocks_map = load_stocks()
+    sales_map = load_sales()
+    print(f"   {sum(len(v) for v in sp_map.values())} promos, {len(stocks_map)} stocks, {len(sales_map)} produits avec ventes\n")
+
+    print("2. Chargement des produits PrestaShop...")
+    raw_products = load_all_products()
+    print(f"   {len(raw_products)} produits chargés\n")
+
+    # 2. Construire les updates
+    print("3. Calcul des prix actuels...")
+    updates = []
+    for rp in raw_products:
+        pid = int(rp["id"])
+        price_ttc = round(float(rp.get("price", 0)) * 1.20 + float(rp.get("ecotax", 0)), 2)
+        if price_ttc <= 0:
+            continue
+        sale_price = get_sale_price(price_ttc, sp_map.get(pid, []))
+        stock = stocks_map.get(pid, 0)
+        total_sales = sales_map.get(pid, 0)
+
+        updates.append({
+            "prestashop_id": pid,
+            "prix_ttc": price_ttc,
+            "prix_promo": sale_price,
+            "en_stock": stock > 0,
+            "stock": stock,
+            "total_sales": total_sales,
+        })
+    print(f"   {len(updates)} produits à mettre à jour\n")
+
+    # 3. UPDATE Supabase parallélisé (20 workers)
+    print("4. Mise à jour Supabase (20 workers parallèles)...")
+    supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+    def update_one(row):
+        pid = row["prestashop_id"]
+        payload = {k: v for k, v in row.items() if k != "prestashop_id"}
+        try:
+            res = supabase.table(TABLE_V2).update(payload).eq("prestashop_id", pid).execute()
+            # res.data est vide si la ligne n'existait pas (produit nouveau, jamais enrichi)
+            return pid, len(res.data) > 0, None
+        except Exception as e:
+            return pid, False, str(e)
+
+    updated = 0
+    skipped_new = 0
+    errors = []
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        futures = [executor.submit(update_one, row) for row in updates]
+        for i, future in enumerate(as_completed(futures), start=1):
+            pid, ok, err = future.result()
+            if err:
+                errors.append({"id": pid, "error": err})
+            elif ok:
+                updated += 1
+            else:
+                skipped_new += 1
+            if i % 200 == 0 or i == len(updates):
+                print(f"   [{i}/{len(updates)}] traités — {updated} MAJ, {skipped_new} nouveaux ignorés, {len(errors)} erreurs")
+
+    elapsed = time.time() - start_time
+    print(f"\n=== Refresh terminé en {elapsed/60:.1f} min ===")
+    print(f"   {updated} produits mis à jour")
+    if skipped_new:
+        print(f"   {skipped_new} nouveaux produits ignorés (jamais enrichis — utiliser --all --db pour les ajouter)")
+    if errors:
+        print(f"   {len(errors)} erreurs :")
+        for e in errors[:10]:
+            print(f"     ID {e['id']}: {e['error'][:100]}")
+
+
 # ── Main ────────────────────────────────────────────────
 
 def main():
@@ -435,7 +514,14 @@ def main():
     parser.add_argument("--db", action="store_true", help="Insérer dans Supabase (sinon JSON local)")
     parser.add_argument("--insert-only", type=str, metavar="JSON_FILE",
                         help="Réinsérer depuis un JSON existant (skip enrichissement)")
+    parser.add_argument("--prices-only", action="store_true",
+                        help="MAJ prix/promos/stocks/ventes uniquement (pas de LLM, ~3 min, coût 0€)")
     args = parser.parse_args()
+
+    # Mode prix uniquement (rapide, gratuit)
+    if args.prices_only:
+        prices_only_update()
+        return
 
     start_time = time.time()
     print("=== LLM Product Enrichment V2 ===\n")
@@ -446,11 +532,6 @@ def main():
         with open(args.insert_only, encoding="utf-8") as f:
             data = json.load(f)
         print(f"   {len(data)} produits chargés")
-
-        # Vérifier que les embeddings sont présents
-        if not data[0].get("embedding"):
-            print("   ERREUR: le JSON ne contient pas d'embeddings. Utilisez un JSON généré avec la version récente.")
-            return
 
         supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
@@ -477,7 +558,6 @@ def main():
                     "description_courte": item["description_courte"],
                     "description_longue": item.get("description_longue"),
                     "total_sales": item["total_sales"],
-                    "embedding": item["embedding"],
                     **{k: attrs.get(k) for k in [
                         "type_produit", "sous_type", "marque", "gamme", "style", "pieces",
                         "surface_min_m2", "surface_max_m2", "diametre_cm", "nombre_pales",
@@ -502,11 +582,6 @@ def main():
 
         elapsed = time.time() - start_time
         print(f"\n=== INSERT-ONLY terminé en {elapsed:.1f}s — {inserted} produits insérés ===")
-
-        # Rebuild IVFFlat index
-        print("\nReconstruction index IVFFlat...")
-        supabase.rpc("fan_boutique_rebuild_index_v2", {}).execute()
-        print("Index reconstruit.")
         return
 
     # 1. Tables de référence
@@ -581,21 +656,9 @@ def main():
     llm_time = time.time() - start_time
     print(f"   LLM terminé en {llm_time/60:.1f} min ({len(all_enriched)} OK, {len(errors)} erreurs)\n")
 
-    # 5. Générer les embeddings (par batch de 100)
-    print("5. Génération des embeddings...")
-    all_embeddings = []
-    texts = [card["embedding_text"] for card, _ in all_enriched]
-    for i in range(0, len(texts), EMBEDDING_BATCH_SIZE):
-        batch = texts[i:i + EMBEDDING_BATCH_SIZE]
-        print(f"   Batch embeddings {i}–{i + len(batch)}...", end=" ", flush=True)
-        embeddings = generate_embeddings(batch)
-        all_embeddings.extend(embeddings)
-        print("OK")
-    print(f"   {len(all_embeddings)} embeddings générés\n")
-
-    # 6. Sauvegarder en JSON local (toujours, pour backup — inclut embeddings)
+    # 5. Sauvegarder en JSON local (toujours, pour backup)
     output_data = []
-    for (card, attrs), emb in zip(all_enriched, all_embeddings):
+    for card, attrs in all_enriched:
         output_data.append({
             "prestashop_id": card["prestashop_id"],
             "nom": card["nom"],
@@ -608,16 +671,15 @@ def main():
             "description_courte": card["description_courte"],
             "description_longue": card["description_longue"],
             "attributs": attrs,
-            "embedding": emb,
         })
     output_file = OUTPUT_DIR / f"enriched_products_{len(output_data)}.json"
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(output_data, f, ensure_ascii=False, indent=2)
-    print(f"6. JSON sauvegardé : {output_file}\n")
+    print(f"5. JSON sauvegardé : {output_file}\n")
 
-    # 7. Insertion Supabase (si --db)
+    # 6. Insertion Supabase (si --db)
     if args.db:
-        print("7. Insertion dans Supabase (fan_boutique_products_v2)...")
+        print("6. Insertion dans Supabase (fan_boutique_products_v2)...")
         supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
         # Vider la table d'abord (full refresh) — TRUNCATE via RPC car DELETE timeout
@@ -630,10 +692,9 @@ def main():
         inserted = 0
         for i in range(0, len(all_enriched), db_batch_size):
             batch_items = all_enriched[i:i + db_batch_size]
-            batch_embeddings = all_embeddings[i:i + db_batch_size]
             rows = []
-            for (card, attrs), emb in zip(batch_items, batch_embeddings):
-                rows.append(build_db_row(card, attrs, emb))
+            for card, attrs in batch_items:
+                rows.append(build_db_row(card, attrs))
 
             try:
                 supabase.table(TABLE_V2).insert(rows).execute()
@@ -644,12 +705,12 @@ def main():
 
         print(f"   {inserted} produits insérés dans {TABLE_V2}\n")
     else:
-        print("7. Insertion Supabase ignorée (ajouter --db pour insérer)\n")
+        print("6. Insertion Supabase ignorée (ajouter --db pour insérer)\n")
 
     # Résumé
     elapsed = time.time() - start_time
     print(f"=== Terminé en {elapsed/60:.1f} min ===")
-    print(f"   {len(all_enriched)} produits enrichis + vectorisés")
+    print(f"   {len(all_enriched)} produits enrichis")
     if errors:
         print(f"   {len(errors)} erreurs LLM :")
         for e in errors[:10]:
