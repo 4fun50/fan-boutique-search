@@ -1,0 +1,21 @@
+/**
+ * Fan Boutique Search — Overrides CSS pour intégration PrestaShop
+ *
+ * Ces règles ajustent le look du widget pour qu'il s'intègre dans le header
+ * du theme ventilateurs-plafond.com (header bleu marine + accent orange).
+ */
+
+/* Le dropdown de résultats doit s'aligner sous l'input du header */
+.fm-search-results {
+  z-index: 1050; /* au-dessus de la modale newsletter PrestaShop */
+}
+
+/* Conserver l'apparence native de l'input PrestaShop (fond bleu, padding, loupe) */
+#search_widget input[name="s"].ui-autocomplete-input {
+  /* L'input garde son style natif — on ne touche à rien */
+}
+
+/* Masquer le dropdown jQuery UI au cas où il réapparaîtrait */
+.ui-autocomplete {
+  display: none !important;
+}
