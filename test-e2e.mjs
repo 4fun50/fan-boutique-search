@@ -74,11 +74,33 @@ const TEST_QUERIES = [
   },
   {
     query: "destratificateur",
-    expect: { minResults: 1 },
+    expect: { minResults: 10 }, // doit ouvrir sur les ventilateurs avec option destratificateur (2842), pas le type strict (18)
+  },
+  {
+    query: "destratificateurs noirs pas chers",
+    expect: { minResults: 5 }, // ~52 ventilateurs noirs avec option destrat — doit en sortir au moins 5
+  },
+  {
+    query: "déstratificateur palfond noir", // typo volontaire pour tester la robustesse
+    expect: { minResults: 5 },
   },
   {
     query: "télécommande ventilateur",
     expect: { minResults: 1 },
+  },
+
+  // --- Recherche par référence produit (nouveauté 2026-05-06) ---
+  {
+    query: "KL_TE3_P8WI166_RINGCH", // référence brute API → match exact
+    expect: { minResults: 1, refContains: "te3_p8wi166_ringch" },
+  },
+  {
+    query: "te3_p8wi166", // référence publique en lowercase → 2 produits Tenerife
+    expect: { minResults: 2, refContains: "te3_p8wi166" },
+  },
+  {
+    query: "FAB_213591328", // autre format de préfixe
+    expect: { minResults: 1, refContains: "213591328" },
   },
   // --- Multi-critères ---
   {
@@ -121,6 +143,18 @@ function checkAssertions(query, results, expect) {
     const withPromo = results.filter((r) => r.prix_promo && r.prix_promo < r.prix);
     if (withPromo.length === 0) {
       issues.push("Aucun produit en promo trouvé");
+    }
+  }
+
+  if (expect.refContains) {
+    const expected = expect.refContains.toLowerCase();
+    const matched = results.some((r) => {
+      const ref = (r.details?.reference || "").toLowerCase();
+      return ref.includes(expected);
+    });
+    if (!matched) {
+      const refs = results.slice(0, 3).map((r) => r.details?.reference || "(null)").join(", ");
+      issues.push(`Aucun résultat avec reference contenant "${expect.refContains}" (top 3 refs: ${refs})`);
     }
   }
 
