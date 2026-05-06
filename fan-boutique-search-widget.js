@@ -1349,8 +1349,15 @@
         this.setWideMode(false);
         this.resultsContainer.innerHTML = `
                     <div class="fm-no-results">
-                        <div class="fm-no-results-icon">🥺</div>
-                        <div>Nous sommes désolés, aucun produit n’a été trouvé pour votre recherche.</div>
+                        <div class="fm-no-results-icon" aria-hidden="true">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <line x1="20" y1="20" x2="16" y2="16"></line>
+                                <line x1="8" y1="11" x2="14" y2="11"></line>
+                            </svg>
+                        </div>
+                        <div>Aucun produit ne correspond à votre recherche.</div>
+                        <div style="font-size: 13px; color: #9ca3af;">Essayez avec d'autres mots-clés ou élargissez vos critères.</div>
                     </div>
                 `;
         this.resultsContainer.classList.add("fm-active");
@@ -1451,18 +1458,23 @@
     }
 
     showError(message = "Erreur lors de la recherche") {
-      const friendlyNoResults =
-        "Nous sommes désolés, aucun produit n’a été trouvé pour votre recherche.";
+      const friendlyNoResults = "Aucun produit ne correspond à votre recherche.";
       const msg = typeof message === "string" ? message : "";
       const isNoItemsMessage = /no item to return was found/i.test(msg);
-      const icon = isNoItemsMessage ? "🥺" : "⚠️";
+      const noResultsIcon = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="20" y1="20" x2="16" y2="16"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`;
+      const errorIcon = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+      const icon = isNoItemsMessage ? noResultsIcon : errorIcon;
       const finalMessage = isNoItemsMessage ? friendlyNoResults : message;
+      const hint = isNoItemsMessage
+        ? `<div style="font-size: 13px; color: #9ca3af;">Essayez avec d'autres mots-clés ou élargissez vos critères.</div>`
+        : "";
       this.resetResultsScroll();
       this.setWideMode(false);
       this.resultsContainer.innerHTML = `
                 <div class="fm-no-results">
-                    <div class="fm-no-results-icon">${icon}</div>
+                    <div class="fm-no-results-icon" aria-hidden="true">${icon}</div>
                     <div>${finalMessage}</div>
+                    ${hint}
                 </div>
             `;
       this.resultsContainer.classList.add("fm-active");

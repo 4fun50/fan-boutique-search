@@ -435,6 +435,10 @@
 .fm-no-results-icon {
   font-size: 34px;
   opacity: 0.5;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Product result */
