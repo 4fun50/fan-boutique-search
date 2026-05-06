@@ -26,7 +26,7 @@ class FanBoutiqueSearch extends Module
     {
         $this->name = 'fanboutiquesearch';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.1';
+        $this->version = '1.0.2';
         $this->author = 'Semzen';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = ['min' => '1.7.0.0', 'max' => _PS_VERSION_];
@@ -115,11 +115,19 @@ class FanBoutiqueSearch extends Module
         $output = '';
 
         if (Tools::isSubmit('submitFbsConfig')) {
-            Configuration::updateValue(self::CONFIG_ENABLED, (bool) Tools::getValue(self::CONFIG_ENABLED) ? '1' : '0');
-            Configuration::updateValue(self::CONFIG_WIDGET_BASE, trim((string) Tools::getValue(self::CONFIG_WIDGET_BASE)));
-            Configuration::updateValue(self::CONFIG_MIN_CHARS, (int) Tools::getValue(self::CONFIG_MIN_CHARS));
-            Configuration::updateValue(self::CONFIG_DEBOUNCE, (int) Tools::getValue(self::CONFIG_DEBOUNCE));
-            $output .= $this->displayConfirmation($this->l('Configuration enregistrée.'));
+            $widgetBase = trim((string) Tools::getValue(self::CONFIG_WIDGET_BASE));
+            $widgetBaseValid = $widgetBase === ''
+                || (filter_var($widgetBase, FILTER_VALIDATE_URL) && preg_match('#^https?://#i', $widgetBase));
+
+            if (!$widgetBaseValid) {
+                $output .= $this->displayError($this->l('URL du widget invalide (doit commencer par http:// ou https://).'));
+            } else {
+                Configuration::updateValue(self::CONFIG_ENABLED, (bool) Tools::getValue(self::CONFIG_ENABLED) ? '1' : '0');
+                Configuration::updateValue(self::CONFIG_WIDGET_BASE, $widgetBase);
+                Configuration::updateValue(self::CONFIG_MIN_CHARS, max(1, min(20, (int) Tools::getValue(self::CONFIG_MIN_CHARS))));
+                Configuration::updateValue(self::CONFIG_DEBOUNCE, max(0, min(5000, (int) Tools::getValue(self::CONFIG_DEBOUNCE))));
+                $output .= $this->displayConfirmation($this->l('Configuration enregistrée.'));
+            }
         }
 
         return $output . $this->renderForm();
