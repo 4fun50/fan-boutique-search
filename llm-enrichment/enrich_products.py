@@ -304,9 +304,13 @@ def build_raw_product_card(raw, features_map, values_map, categories_map, sp_map
     link_rewrite = get_lang(raw.get("link_rewrite", ""))
     product_url = f"{PUBLIC_BASE}/{raw['id']}-{link_rewrite}.html" if link_rewrite else None
 
+    # Référence PrestaShop (pour recherche par référence côté front)
+    reference = (raw.get("reference") or "").strip() or None
+
     return {
         "prestashop_id": product_id,
         "nom": name,
+        "reference": reference,
         "description_courte": description_short,
         "description_longue": description,
         "prix_ttc": price_ttc,
@@ -362,6 +366,7 @@ def build_db_row(card, attrs):
     return {
         "prestashop_id": card["prestashop_id"],
         "nom": card["nom"],
+        "reference": card.get("reference"),
         "prix_ttc": card["prix_ttc"],
         "prix_promo": card["prix_promo"],
         "en_stock": card["stock"] > 0,
@@ -451,9 +456,11 @@ def prices_only_update():
         sale_price = get_sale_price(price_ttc, sp_map.get(pid, []))
         stock = stocks_map.get(pid, 0)
         total_sales = sales_map.get(pid, 0)
+        reference = (rp.get("reference") or "").strip() or None
 
         updates.append({
             "prestashop_id": pid,
+            "reference": reference,
             "prix_ttc": price_ttc,
             "prix_promo": sale_price,
             "en_stock": stock > 0,
@@ -549,6 +556,7 @@ def main():
                 rows.append({
                     "prestashop_id": item["prestashop_id"],
                     "nom": item["nom"],
+                    "reference": item.get("reference"),
                     "prix_ttc": item["prix_ttc"],
                     "prix_promo": item["prix_promo"],
                     "en_stock": item["stock"] > 0,
@@ -662,6 +670,7 @@ def main():
         output_data.append({
             "prestashop_id": card["prestashop_id"],
             "nom": card["nom"],
+            "reference": card.get("reference"),
             "prix_ttc": card["prix_ttc"],
             "prix_promo": card["prix_promo"],
             "stock": card["stock"],

@@ -111,7 +111,7 @@ Proxies requests to n8n webhook with:
 - Table `fan_boutique_products_v2` : ~3779 produits avec colonnes typées + embeddings vectoriels
 - Table `fan_boutique_rate_limit` : rate limiting par IP (minute + jour)
 - Fonction RPC `fan_boutique_check_rate_limit` : vérification atomique des limites
-- Fonction RPC `fan_boutique_search_v2` : filtres structurés + tri (36 paramètres, plus de vectoriel)
+- Fonction RPC `fan_boutique_search_v2` : filtres structurés + tri (37 paramètres, plus de vectoriel)
 
 ### Node n8n "Recover all values for frontend"
 
@@ -125,8 +125,9 @@ Ce node formate la réponse Supabase pour le widget. Fonctionnement clé :
 ### Base de données V2 — Table `fan_boutique_products_v2`
 
 Colonnes principales :
-- `id`, `prestashop_id`, `nom`, `prix_ttc`, `prix_promo`, `en_stock`, `stock`
+- `id`, `prestashop_id`, `nom`, `reference`, `prix_ttc`, `prix_promo`, `en_stock`, `stock`
 - `image_url`, `product_url`, `description_courte`, `description_longue`
+- `reference` : référence produit PrestaShop brute (ex: `KL_TE3_P8WI166_RINGCH`, `FAB_213591328`). Indexée via GIN trigram (`pg_trgm`) sur `LOWER(reference)` pour permettre la recherche `ILIKE '%...%'` rapide
 
 Attributs LLM normalisés (colonnes typées, pas JSONB) :
 - `type_produit` : ventilateur_plafond, ventilateur_table, ventilateur_sur_pied, ventilateur_mural, ventilateur_colonne, destratificateur, brasseur_air, climatiseur, humidificateur, chauffage, cheminee, accessoire
@@ -149,11 +150,12 @@ Distribution des types de produit :
 
 ### RPC `fan_boutique_search_v2` — Paramètres
 
-36 paramètres (plus de `p_query_embedding`), tous optionnels. Filtrage par matching exact sur colonnes typées. Plus de recherche vectorielle ni de score de similarité.
+37 paramètres (plus de `p_query_embedding`), tous optionnels. Filtrage par matching exact sur colonnes typées. Plus de recherche vectorielle ni de score de similarité.
 - `p_type_produit` : filtre exact (ex: "ventilateur_plafond"). **Par défaut le LLM envoie "ventilateur_plafond"** pour les requêtes génériques.
 - `p_style`, `p_couleur_moteur`, `p_couleur_pales`, `p_matiere_pales` : tableaux text[] avec matching ANY
 - `p_pieces` : tableau text[] avec overlap (&&)
 - `p_marque` : ILIKE pour tolérance casse
+- `p_reference` : recherche par référence produit (`LOWER(reference) LIKE '%' || LOWER(p_reference) || '%'`). Insensible à la casse, contains. L'utilisateur peut taper `te3_p8wi166` ou `TE3_P8Wi166` ou même juste `p8wi166` → match. Le préfixe `KL_`/`FAB_`/`FA_` est implicitement géré (non requis dans la requête).
 - Booléens : matching exact (pas de ILIKE sur "Oui/Non" comme en V1)
 - Prix : sur `effective_price` = COALESCE(prix_promo, prix_ttc)
 - Tri : `p_sort_column` = sales_desc (défaut), price_asc, price_desc. Pas de tri par similarité.
