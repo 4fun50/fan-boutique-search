@@ -26,7 +26,7 @@ class FanBoutiqueSearch extends Module
     {
         $this->name = 'fanboutiquesearch';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.3';
+        $this->version = '1.0.4';
         $this->author = 'Semzen';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = ['min' => '1.7.0.0', 'max' => _PS_VERSION_];

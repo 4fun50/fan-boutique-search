@@ -19,3 +19,13 @@
 .ui-autocomplete {
   display: none !important;
 }
+
+/*
+ * Mobile : le toolbar PrestaShop a un overflow:hidden qui clippe la
+ * dropdown des résultats du widget (position:absolute en débordement).
+ * On force overflow:visible pour permettre l'affichage des résultats.
+ * (Bug visible sur www.ventilateurs-plafond.com en mobile, fix 2026-05-07.)
+ */
+#searchToolbarMobile {
+  overflow: visible !important;
+}
