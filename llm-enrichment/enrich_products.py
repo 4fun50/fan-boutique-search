@@ -619,7 +619,9 @@ def main():
     excluded = 0
     for rp in raw_products:
         card = build_raw_product_card(rp, features_map, values_map, categories_map, sp_map, stocks_map, sales_map)
-        if "configurateur" in card["nom"].lower():
+        nom_lower = card["nom"].lower()
+        # Exclure produits non vendables tels quels (kits à monter, configurateurs)
+        if any(t in nom_lower for t in ["configurateur", "à composer"]):
             excluded += 1
             continue
         if card["prix_ttc"] <= 0:

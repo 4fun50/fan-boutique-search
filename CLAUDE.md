@@ -114,7 +114,7 @@ Proxies requests to n8n webhook with:
 - Table `fan_boutique_products_v2` : ~3779 produits avec colonnes typées + embeddings vectoriels
 - Table `fan_boutique_rate_limit` : rate limiting par IP (minute + jour)
 - Fonction RPC `fan_boutique_check_rate_limit` : vérification atomique des limites
-- Fonction RPC `fan_boutique_search_v2` : filtres structurés + tri (37 paramètres, plus de vectoriel)
+- Fonction RPC `fan_boutique_search_v2` : filtres structurés + tri (38 paramètres, plus de vectoriel). Exclut les produits en rupture par défaut (`p_include_out_of_stock=false`).
 
 ### Node n8n "Recover all values for frontend"
 
@@ -153,7 +153,9 @@ Distribution des types de produit :
 
 ### RPC `fan_boutique_search_v2` — Paramètres
 
-37 paramètres (plus de `p_query_embedding`), tous optionnels. Filtrage par matching exact sur colonnes typées. Plus de recherche vectorielle ni de score de similarité.
+38 paramètres (plus de `p_query_embedding`), tous optionnels. Filtrage par matching exact sur colonnes typées. Plus de recherche vectorielle ni de score de similarité.
+
+- `p_include_out_of_stock` (DEFAULT FALSE) : par défaut, les produits avec `en_stock=false` sont exclus. Mettre `true` pour inclure les ruptures (ex: page admin, stats).
 - `p_type_produit` : filtre exact (ex: "ventilateur_plafond"). **Par défaut le LLM envoie "ventilateur_plafond"** pour les requêtes génériques.
 - `p_style`, `p_couleur_moteur`, `p_couleur_pales`, `p_matiere_pales` : tableaux text[] avec matching ANY
 - `p_pieces` : tableau text[] avec overlap (&&)
